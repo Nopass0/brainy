@@ -120,6 +120,25 @@ export {
 } from './nn/init';
 
 // ============================================
+// NN - Transformer
+// ============================================
+export {
+  ScaledDotProductAttention,
+  MultiHeadAttention,
+  FeedForward,
+  TransformerEncoderBlock,
+  TransformerDecoderBlock,
+  PositionalEncoding,
+  LearnedPositionalEmbedding,
+  TransformerEncoder,
+  TransformerDecoder,
+  RotaryEmbedding,
+  createCausalMask,
+  createPaddingMask,
+} from './nn/transformer';
+export type { TransformerConfig } from './nn/transformer';
+
+// ============================================
 // OPTIM - Оптимизаторы
 // ============================================
 export {
@@ -177,6 +196,79 @@ export {
 } from './functional/functional';
 
 // ============================================
+// COMPUTE - GPU и многопоточность
+// ============================================
+export {
+  DeviceType,
+  DeviceManager,
+  createDevice,
+  getDevice,
+  isWebGPUSupported,
+  getCPUCores,
+} from './compute/device';
+export type { DeviceConfig, GPUInfo, CPUInfo, PerformanceStats } from './compute/device';
+
+export { GPUBackend, createGPUBackend, isGPUBackendAvailable } from './compute/gpu';
+
+export { WorkerPool, WorkerOp, getWorkerPool, terminateWorkerPool } from './compute/cpu-workers';
+
+export {
+  HybridEngine,
+  getHybridEngine,
+  disposeHybridEngine,
+  asyncOps,
+} from './compute/hybrid';
+export type { HybridConfig } from './compute/hybrid';
+
+// ============================================
+// TEXT - Токенизаторы
+// ============================================
+export {
+  Tokenizer,
+  BPETokenizer,
+  WordPieceTokenizer,
+  CharTokenizer,
+  SpecialTokens,
+  loadTokenizer,
+} from './text/tokenizer';
+export type { TokenizerConfig, TokenizerOutput, BatchEncoding } from './text/tokenizer';
+
+// ============================================
+// MODELS - Готовые модели
+// ============================================
+export {
+  GPT,
+  createSmallGPT,
+  createMediumGPT,
+  createLargeGPT,
+} from './models/gpt';
+export type { GPTConfig, GenerationConfig } from './models/gpt';
+
+export {
+  VAE,
+  ConvVAE,
+  createMNISTVAE,
+  createCIFARVAE,
+} from './models/vae';
+export type { VAEConfig, VAEOutput } from './models/vae';
+
+export {
+  TRM,
+  TRMSeq2Seq,
+  TRMClassifier,
+  createTinyTRM,
+  createReasoningTRM,
+} from './models/trm';
+export type { TRMConfig } from './models/trm';
+
+export {
+  MultimodalFewShot,
+  createSmallMultimodal,
+  createMediumMultimodal,
+} from './models/multimodal';
+export type { MultimodalConfig } from './models/multimodal';
+
+// ============================================
 // UTILS - Утилиты
 // ============================================
 export {
@@ -200,8 +292,101 @@ export {
   shuffle,
 } from './utils/random';
 
+// Чекпоинты и сжатие
+export {
+  CheckpointManager,
+  CompressionFormat,
+  saveCheckpoint,
+  loadCheckpoint,
+  exportModel,
+} from './utils/checkpoint';
+export type { CheckpointMetadata, Checkpoint, SaveOptions } from './utils/checkpoint';
+
+// Квантизация
+export {
+  Quantizer,
+  QuantizedTensor,
+  QuantizedLinear,
+  QuantizedModule,
+  QuantizationMode,
+  QuantizationBits,
+  FakeQuantize,
+  dynamicQuantize,
+  prepareQAT,
+  convertQAT,
+  getModelSize,
+} from './utils/quantization';
+export type { QuantizationConfig, QuantParams } from './utils/quantization';
+
+// Fine-tuning
+export {
+  FineTuneTrainer,
+  FineTuneStrategy,
+  LoRALayer,
+  AdapterLayer,
+  PrefixTuningLayer,
+  createLoRAModel,
+  fineTune,
+} from './utils/finetune';
+export type { FineTuneConfig } from './utils/finetune';
+
+// Визуализация моделей
+export {
+  visualize,
+  visualizeVertical,
+  visualizeFlow,
+  printModel,
+  summary,
+  extendModuleWithVisualize,
+} from './utils/visualize';
+export type { VisualizeOptions } from './utils/visualize';
+
+// Онлайн/Real-time обучение
+export {
+  OnlineLearner,
+  ContinualLearner,
+  MetaLearner,
+  SelfTrainer,
+} from './utils/online-learning';
+export type { OnlineLearningConfig } from './utils/online-learning';
+
+// ============================================
+// DATA - Расширенные возможности
+// ============================================
+export {
+  StreamingDataset,
+  HuggingFaceDataset,
+  SequenceDataset,
+  NameDataset,
+  DataGenerator,
+  loadJson,
+  loadJsonl,
+  loadCsv,
+  createHuggingFaceLoader,
+} from './data/dataloader';
+export type { StreamConfig, HuggingFaceConfig } from './data/dataloader';
+
+// ============================================
+// RL - Reinforcement Learning
+// ============================================
+export {
+  ReplayBuffer,
+  DQNAgent,
+  PolicyGradientAgent,
+  ActorCriticAgent,
+  CartPoleEnv,
+  GridWorldEnv,
+  trainDQN,
+} from './rl/index';
+export type {
+  Experience,
+  DQNConfig,
+  PolicyGradientConfig,
+  ActorCriticConfig,
+} from './rl/index';
+
 // ============================================
 // VERSION
 // ============================================
-export const VERSION = '1.0.0';
+export const VERSION = '2.1.0';
 export const FRAMEWORK_NAME = 'Brainy';
