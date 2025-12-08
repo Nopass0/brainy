@@ -1,0 +1,38 @@
+{
+  "name": "brainy",
+  "version": "1.0.0",
+  "description": "🧠 Быстрый AI/ML фреймворк для Bun с поддержкой GPU/CPU, автодифференцированием и PyTorch-подобным API",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "test": "bun test",
+    "example:tensors": "bun run examples/01-basic-tensors.ts",
+    "example:autograd": "bun run examples/02-autograd.ts",
+    "example:regression": "bun run examples/03-linear-regression.ts",
+    "example:xor": "bun run examples/04-xor-neural-network.ts",
+    "example:mnist": "bun run examples/05-mnist-classification.ts",
+    "example:custom": "bun run examples/06-custom-layer.ts",
+    "examples": "bun run example:tensors && bun run example:autograd && bun run example:regression && bun run example:xor && bun run example:custom"
+  },
+  "keywords": [
+    "ai",
+    "ml",
+    "machine-learning",
+    "deep-learning",
+    "neural-network",
+    "tensor",
+    "autograd",
+    "bun",
+    "typescript",
+    "gpu",
+    "webgpu"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  }
+}

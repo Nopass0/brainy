@@ -1,0 +1,6 @@
+[install]
+auto = true
+
+[run]
+# Enable experimental WebGPU support
+# Note: WebGPU in Bun is experimental
