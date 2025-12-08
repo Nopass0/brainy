@@ -252,6 +252,22 @@ export {
 } from './models/vae';
 export type { VAEConfig, VAEOutput } from './models/vae';
 
+export {
+  TRM,
+  TRMSeq2Seq,
+  TRMClassifier,
+  createTinyTRM,
+  createReasoningTRM,
+} from './models/trm';
+export type { TRMConfig } from './models/trm';
+
+export {
+  MultimodalFewShot,
+  createSmallMultimodal,
+  createMediumMultimodal,
+} from './models/multimodal';
+export type { MultimodalConfig } from './models/multimodal';
+
 // ============================================
 // UTILS - Утилиты
 // ============================================
@@ -314,8 +330,63 @@ export {
 } from './utils/finetune';
 export type { FineTuneConfig } from './utils/finetune';
 
+// Визуализация моделей
+export {
+  visualize,
+  visualizeVertical,
+  visualizeFlow,
+  printModel,
+  summary,
+  extendModuleWithVisualize,
+} from './utils/visualize';
+export type { VisualizeOptions } from './utils/visualize';
+
+// Онлайн/Real-time обучение
+export {
+  OnlineLearner,
+  ContinualLearner,
+  MetaLearner,
+  SelfTrainer,
+} from './utils/online-learning';
+export type { OnlineLearningConfig } from './utils/online-learning';
+
+// ============================================
+// DATA - Расширенные возможности
+// ============================================
+export {
+  StreamingDataset,
+  HuggingFaceDataset,
+  SequenceDataset,
+  NameDataset,
+  DataGenerator,
+  loadJson,
+  loadJsonl,
+  loadCsv,
+  createHuggingFaceLoader,
+} from './data/dataloader';
+export type { StreamConfig, HuggingFaceConfig } from './data/dataloader';
+
+// ============================================
+// RL - Reinforcement Learning
+// ============================================
+export {
+  ReplayBuffer,
+  DQNAgent,
+  PolicyGradientAgent,
+  ActorCriticAgent,
+  CartPoleEnv,
+  GridWorldEnv,
+  trainDQN,
+} from './rl/index';
+export type {
+  Experience,
+  DQNConfig,
+  PolicyGradientConfig,
+  ActorCriticConfig,
+} from './rl/index';
+
 // ============================================
 // VERSION
 // ============================================
-export const VERSION = '2.0.0';
+export const VERSION = '2.1.0';
 export const FRAMEWORK_NAME = 'Brainy';
