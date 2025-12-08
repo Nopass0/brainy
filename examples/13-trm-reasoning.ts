@@ -1,11 +1,17 @@
 /**
- * @fileoverview TRM (Tiny Recursion Model) - Рекурсивное уточнение предсказаний
- * @description Демонстрация TRM архитектуры на задачах рассуждений
+ * @fileoverview TRM (Tiny Recursion Model) - Enhanced Recursive Refinement
+ * @description Демонстрация улучшенной TRM архитектуры на задачах рассуждений
  *
  * TRM использует итеративное улучшение ответов через:
  * - x: Входное представление
  * - y: Текущий ответ (улучшается итеративно)
  * - z: Латентное состояние рассуждений
+ *
+ * Улучшения:
+ * - Self-attention для лучшего рассуждения
+ * - GRU-style gating для стабильного обучения
+ * - Adaptive pondering (ACT) для динамического вычисления
+ * - Поддержка GPU при наличии
  */
 
 import {
@@ -16,6 +22,10 @@ import {
   TRMClassifier,
   createTinyTRM,
   createReasoningTRM,
+  createEnhancedTRM,
+  createPonderingTRM,
+  initTRMGPU,
+  isTRMGPUAvailable,
   Adam,
   summary,
   Sequential,
@@ -24,8 +34,29 @@ import {
 } from '../src';
 
 console.log('='.repeat(60));
-console.log('TRM (Tiny Recursion Model) - Рекурсивное рассуждение');
+console.log('TRM (Tiny Recursion Model) - Enhanced Version');
 console.log('='.repeat(60));
+
+// ============================================
+// GPU Initialization
+// ============================================
+console.log('\n[0] Инициализация устройства');
+console.log('-'.repeat(40));
+
+// Try to initialize GPU (async, but we'll continue CPU if not available)
+initTRMGPU().then(gpuAvailable => {
+  if (gpuAvailable) {
+    console.log('GPU: Включено (WebGPU)');
+  } else {
+    console.log('GPU: Недоступно, используется CPU');
+  }
+}).catch(() => {
+  console.log('GPU: Инициализация не удалась, используется CPU');
+});
+
+// For non-async context, just check availability
+console.log(`GPU статус: ${isTRMGPUAvailable() ? 'Доступен' : 'Недоступен (CPU режим)'}`);
+console.log('');
 
 // ============================================
 // 1. Простая задача: XOR с шумом
@@ -373,6 +404,105 @@ console.log('-'.repeat(40));
 
 console.log(summary(trmModel, [1, 2]));
 
+// ============================================
+// 8. Enhanced TRM с self-attention и gating
+// ============================================
+console.log('\n[8] Enhanced TRM (self-attention + gating)');
+console.log('-'.repeat(40));
+
+// Сравнение базового и улучшенного TRM
+const enhancedModel = createEnhancedTRM(2, 1, {
+  hiddenDim: 32,
+  numRecursions: 4,
+  useSelfAttention: true,
+  useGating: true,
+});
+
+const basicModel = createTinyTRM(2, 1, 32, 4);
+
+console.log('Базовый TRM vs Enhanced TRM на XOR:');
+
+// Обучаем обе модели
+const enhancedOpt = new Adam(enhancedModel.parameters(), 0.01);
+const basicOpt = new Adam(basicModel.parameters(), 0.01);
+
+const trainXOR = generateNoisyXOR(100, 0.2);
+
+let enhancedLoss = 0;
+let basicLoss = 0;
+
+for (let epoch = 0; epoch < 30; epoch++) {
+  // Enhanced
+  const enhOut = enhancedModel.forward(trainXOR.x);
+  const enhL = enhOut.sub(trainXOR.y).pow(2).mean();
+  enhancedOpt.zeroGrad();
+  enhL.backward();
+  enhancedOpt.step();
+  enhancedLoss = enhL.item();
+
+  // Basic
+  const basOut = basicModel.forward(trainXOR.x);
+  const basL = basOut.sub(trainXOR.y).pow(2).mean();
+  basicOpt.zeroGrad();
+  basL.backward();
+  basicOpt.step();
+  basicLoss = basL.item();
+}
+
+console.log(`  Basic TRM Loss: ${basicLoss.toFixed(4)}`);
+console.log(`  Enhanced TRM Loss: ${enhancedLoss.toFixed(4)}`);
+
+// Тест
+const testXOR = generateNoisyXOR(50, 0.2);
+const enhPred = enhancedModel.forward(testXOR.x);
+const basPred = basicModel.forward(testXOR.x);
+
+let enhCorrect = 0, basCorrect = 0;
+for (let i = 0; i < 50; i++) {
+  if ((enhPred.data[i] > 0.5 ? 1 : 0) === testXOR.y.data[i]) enhCorrect++;
+  if ((basPred.data[i] > 0.5 ? 1 : 0) === testXOR.y.data[i]) basCorrect++;
+}
+
+console.log(`  Basic TRM Accuracy: ${(basCorrect / 50 * 100).toFixed(1)}%`);
+console.log(`  Enhanced TRM Accuracy: ${(enhCorrect / 50 * 100).toFixed(1)}%`);
+
+// ============================================
+// 9. Multi-scale рекурсии
+// ============================================
+console.log('\n[9] Multi-scale рекурсии');
+console.log('-'.repeat(40));
+
+const multiScaleModel = createEnhancedTRM(3, 1, { hiddenDim: 32, numRecursions: 8 });
+const multiScaleInput = new Tensor(new Float32Array([0.5, 0.3, 0.7]), [1, 3]);
+
+console.log('Выход при разном числе шагов:');
+for (const steps of [2, 4, 6, 8]) {
+  const out = multiScaleModel.forward(multiScaleInput, steps);
+  console.log(`  ${steps} шагов: ${out.data[0].toFixed(4)}`);
+}
+
+const multiScaleOut = multiScaleModel.forwardMultiScale(multiScaleInput, [2, 4, 8]);
+console.log(`  Multi-scale (avg): ${multiScaleOut.data[0].toFixed(4)}`);
+
+// ============================================
+// 10. Конфигурация Enhanced TRM
+// ============================================
+console.log('\n[10] Конфигурация моделей');
+console.log('-'.repeat(40));
+
+const configs = [
+  { name: 'Tiny TRM', model: createTinyTRM(4, 2, 32, 4) },
+  { name: 'Reasoning TRM', model: createReasoningTRM(4, 2) },
+  { name: 'Enhanced TRM', model: createEnhancedTRM(4, 2, { useSelfAttention: true, useGating: true }) },
+];
+
+for (const { name, model } of configs) {
+  const config = model.getConfig();
+  console.log(`  ${name}:`);
+  console.log(`    Hidden: ${config.hiddenDim}, Recursions: ${config.numRecursions}`);
+  console.log(`    Self-attention: ${config.useSelfAttention}, Gating: ${config.useGating}`);
+}
+
 console.log('\n' + '='.repeat(60));
-console.log('TRM демо завершено!');
+console.log('TRM Enhanced демо завершено!');
 console.log('='.repeat(60));
