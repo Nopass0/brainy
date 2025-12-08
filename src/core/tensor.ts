@@ -387,21 +387,32 @@ export class Tensor {
     const resultData = new TypedArrayClass(resultSize);
 
     // Выполняем операцию с broadcast
+    // Вычисляем strides для обоих тензоров с учётом broadcast
+    const aStrides = computeStrides(this.shape);
+    const bStrides = computeStrides(otherTensor.shape);
+
     for (let i = 0; i < resultSize; i++) {
       const indices = offsetToIndices(i, resultShape);
 
       // Broadcast индексы для каждого тензора
-      const aIndices = indices.slice(-(this.shape.length)).map((idx, dim) => {
-        const actualDim = this.shape.length - (indices.length - (indices.length - this.shape.length) - dim) - 1;
-        return this.shape[this.shape.length - 1 - dim] === 1 ? 0 : idx;
-      }).reverse();
+      // Для каждого тензора нужно пропустить ведущие измерения результата
+      // если тензор имеет меньше измерений
 
-      const bIndices = indices.slice(-(otherTensor.shape.length)).map((idx, dim) => {
-        return otherTensor.shape[otherTensor.shape.length - 1 - dim] === 1 ? 0 : idx;
-      }).reverse();
+      let aOffset = 0;
+      const aDimOffset = resultShape.length - this.shape.length;
+      for (let d = 0; d < this.shape.length; d++) {
+        const resultIdx = indices[aDimOffset + d];
+        const idx = this.shape[d] === 1 ? 0 : resultIdx;
+        aOffset += idx * aStrides[d];
+      }
 
-      const aOffset = indicesToOffset(aIndices, this.strides as number[]);
-      const bOffset = indicesToOffset(bIndices, otherTensor.strides as number[]);
+      let bOffset = 0;
+      const bDimOffset = resultShape.length - otherTensor.shape.length;
+      for (let d = 0; d < otherTensor.shape.length; d++) {
+        const resultIdx = indices[bDimOffset + d];
+        const idx = otherTensor.shape[d] === 1 ? 0 : resultIdx;
+        bOffset += idx * bStrides[d];
+      }
 
       resultData[i] = op(this.data[aOffset], otherTensor.data[bOffset]);
     }

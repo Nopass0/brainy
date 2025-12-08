@@ -116,7 +116,7 @@ export function topologicalSort(root: Tensor): Tensor[] {
 export function backward(root: Tensor, gradOutput?: Tensor): void {
   // Импортируем здесь чтобы избежать циклических зависимостей
   const { ones } = require('./tensor');
-  
+
   // Инициализируем градиент корня
   if (!gradOutput) {
     if (root.size !== 1) {
@@ -130,25 +130,35 @@ export function backward(root: Tensor, gradOutput?: Tensor): void {
   // Топологическая сортировка
   const sorted = topologicalSort(root);
 
-  // Обратный проход
-  for (const tensor of sorted) {
-    if (!tensor.gradNode || !tensor.grad) continue;
+  // Включаем режим noGrad для вычисления градиентов
+  // чтобы не создавать новые вычислительные графы
+  const prevNoGrad = noGradMode;
+  noGradMode = true;
 
-    const grads = tensor.gradNode.gradFn(tensor.grad);
+  try {
+    // Обратный проход
+    for (const tensor of sorted) {
+      if (!tensor.gradNode || !tensor.grad) continue;
 
-    for (let i = 0; i < tensor.gradNode.inputs.length; i++) {
-      const input = tensor.gradNode.inputs[i];
-      const inputGrad = grads[i];
+      const grads = tensor.gradNode.gradFn(tensor.grad);
 
-      if (!input.requiresGrad) continue;
+      for (let i = 0; i < tensor.gradNode.inputs.length; i++) {
+        const input = tensor.gradNode.inputs[i];
+        const inputGrad = grads[i];
 
-      if (input.grad) {
-        // Накапливаем градиенты
-        input.grad = input.grad.add(inputGrad);
-      } else {
-        input.grad = inputGrad;
+        if (!input.requiresGrad) continue;
+
+        if (input.grad) {
+          // Накапливаем градиенты
+          input.grad = input.grad.add(inputGrad);
+        } else {
+          input.grad = inputGrad;
+        }
       }
     }
+  } finally {
+    // Восстанавливаем предыдущий режим noGrad
+    noGradMode = prevNoGrad;
   }
 }
 
