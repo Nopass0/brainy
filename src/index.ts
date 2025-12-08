@@ -10,7 +10,6 @@
 // ============================================
 export {
   Tensor,
-  TensorOptions,
   // Фабричные функции
   tensor,
   scalar,
@@ -30,21 +29,13 @@ export {
   noGradContext,
   isNoGradEnabled,
 } from './core/tensor';
+export type { TensorOptions } from './core/tensor';
 
-export {
-  DType,
-  Shape,
-  TypedArray,
-  NestedArray,
-} from './core/dtype';
+export { DType } from './core/dtype';
+export type { Shape, TypedArray, NestedArray } from './core/dtype';
 
-export {
-  GradNode,
-  GradContext,
-  GradientFunction,
-  backward,
-  topologicalSort,
-} from './core/autograd';
+export { GradNode, GradContext, backward, topologicalSort } from './core/autograd';
+export type { GradientFunction } from './core/autograd';
 
 export {
   computeSize,
@@ -154,10 +145,10 @@ export {
   TensorDataset,
   ArrayDataset,
   DataLoader,
-  Batch,
   trainTestSplit,
   ConcatDataset,
 } from './data/dataloader';
+export type { Batch } from './data/dataloader';
 
 // ============================================
 // FUNCTIONAL - Функциональный API
