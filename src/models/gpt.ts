@@ -14,6 +14,7 @@ import {
   createCausalMask,
 } from '../nn/transformer';
 import { Tokenizer } from '../text/tokenizer';
+import { GradNode, GradContext, isNoGradEnabled } from '../core/autograd';
 
 /**
  * Конфигурация GPT модели
@@ -140,84 +141,115 @@ export class GPT extends Module {
   /**
    * Вычисляет loss для языкового моделирования
    * @param inputIds - ID токенов [batch, seq_len]
-   * @param labels - Метки (сдвинутые inputIds) [batch, seq_len]
+   * @param labels - Метки (те же что inputIds - будут сдвинуты внутри) [batch, seq_len]
    */
   computeLoss(inputIds: Tensor, labels: Tensor): Tensor {
     const logits = this.forward(inputIds);
 
-    // Сдвигаем logits и labels для next token prediction
-    // logits: [batch, seq_len, vocab] -> [batch, seq_len-1, vocab]
-    // labels: [batch, seq_len] -> [batch, seq_len-1]
-
-    const batchSize = logits.shape[0];
-    const seqLen = logits.shape[1] - 1;
-    const vocabSize = logits.shape[2];
-
-    // Shift logits
-    const shiftedLogitsData = new Float32Array(batchSize * seqLen * vocabSize);
-    for (let b = 0; b < batchSize; b++) {
-      for (let s = 0; s < seqLen; s++) {
-        for (let v = 0; v < vocabSize; v++) {
-          const srcIdx = (b * (seqLen + 1) + s) * vocabSize + v;
-          const dstIdx = (b * seqLen + s) * vocabSize + v;
-          shiftedLogitsData[dstIdx] = logits.data[srcIdx];
-        }
-      }
-    }
-    const shiftedLogits = new Tensor(shiftedLogitsData, [batchSize, seqLen, vocabSize], {
-      requiresGrad: true,
-    });
-
-    // Shift labels
-    const shiftedLabelsData = new Float32Array(batchSize * seqLen);
-    for (let b = 0; b < batchSize; b++) {
-      for (let s = 0; s < seqLen; s++) {
-        shiftedLabelsData[b * seqLen + s] = labels.data[b * (seqLen + 1) + s + 1];
-      }
-    }
-    const shiftedLabels = new Tensor(shiftedLabelsData, [batchSize, seqLen], {
-      dtype: DType.Int32,
-    });
-
-    // Cross entropy loss
-    return this.crossEntropyLoss(shiftedLogits, shiftedLabels);
-  }
-
-  /**
-   * Cross entropy loss для языкового моделирования
-   */
-  private crossEntropyLoss(logits: Tensor, labels: Tensor): Tensor {
     const batchSize = logits.shape[0];
     const seqLen = logits.shape[1];
     const vocabSize = logits.shape[2];
 
-    // Flatten
-    const flatLogits = logits.reshape(batchSize * seqLen, vocabSize);
-    const flatLabels = labels.reshape(batchSize * seqLen);
+    // Cross entropy loss с proper gradient support
+    // Для позиции t предсказываем labels[t+1]
 
-    // Softmax + NLL
-    let loss = 0;
-    for (let i = 0; i < batchSize * seqLen; i++) {
-      const label = Math.floor(flatLabels.data[i]);
-      if (label < 0) continue; // Skip padding
-
-      // Log softmax
-      let maxLogit = -Infinity;
-      for (let v = 0; v < vocabSize; v++) {
-        const logit = flatLogits.data[i * vocabSize + v];
-        if (logit > maxLogit) maxLogit = logit;
+    // Collect targets - labels is already shifted (labels[t] is the target for input[t])
+    // For position t, logits[t] predicts the next token which is labels[t]
+    const targets = new Float32Array(batchSize * seqLen);
+    for (let b = 0; b < batchSize; b++) {
+      for (let t = 0; t < seqLen; t++) {
+        targets[b * seqLen + t] = labels.data[b * seqLen + t];
       }
-
-      let sumExp = 0;
-      for (let v = 0; v < vocabSize; v++) {
-        sumExp += Math.exp(flatLogits.data[i * vocabSize + v] - maxLogit);
-      }
-
-      const logSoftmax = flatLogits.data[i * vocabSize + label] - maxLogit - Math.log(sumExp);
-      loss -= logSoftmax;
     }
 
-    return tensor([[loss / (batchSize * seqLen)]], { requiresGrad: true });
+    // Compute loss
+    let totalLoss = 0;
+    let count = 0;
+
+    for (let b = 0; b < batchSize; b++) {
+      for (let t = 0; t < seqLen; t++) {
+        const rowIdx = b * seqLen + t;
+        const targetToken = Math.floor(targets[b * seqLen + t]);
+
+        if (targetToken >= 0 && targetToken < vocabSize) {
+          // Numerically stable log softmax
+          let maxVal = -Infinity;
+          for (let v = 0; v < vocabSize; v++) {
+            const val = logits.data[(rowIdx * vocabSize) + v];
+            if (val > maxVal) maxVal = val;
+          }
+
+          let sumExp = 0;
+          for (let v = 0; v < vocabSize; v++) {
+            sumExp += Math.exp(logits.data[(rowIdx * vocabSize) + v] - maxVal);
+          }
+
+          const logProb = logits.data[(rowIdx * vocabSize) + targetToken] - maxVal - Math.log(sumExp + 1e-10);
+          totalLoss -= logProb;
+          count++;
+        }
+      }
+    }
+
+    const avgLoss = count > 0 ? totalLoss / count : 0;
+
+    // Create result tensor with proper gradient
+    const result = new Tensor(new Float32Array([avgLoss]), [1], {
+      requiresGrad: logits.requiresGrad,
+    });
+
+    // Setup autograd
+    if (logits.requiresGrad && !isNoGradEnabled()) {
+      const capturedLogits = logits;
+      const capturedTargets = targets;
+      const capturedCount = count;
+      const capturedSeqLen = seqLen;
+      const capturedVocabSize = vocabSize;
+      const capturedBatchSize = batchSize;
+
+      result.gradNode = new GradNode(
+        (gradOutput: Tensor) => {
+          const gradData = new Float32Array(capturedLogits.size);
+
+          for (let b = 0; b < capturedBatchSize; b++) {
+            for (let t = 0; t < capturedSeqLen; t++) {
+              const rowIdx = b * capturedSeqLen + t;
+              const targetToken = Math.floor(capturedTargets[b * capturedSeqLen + t]);
+
+              if (targetToken >= 0 && targetToken < capturedVocabSize) {
+                // Compute softmax for this position
+                let maxVal = -Infinity;
+                for (let v = 0; v < capturedVocabSize; v++) {
+                  const val = capturedLogits.data[(rowIdx * capturedVocabSize) + v];
+                  if (val > maxVal) maxVal = val;
+                }
+
+                let sumExp = 0;
+                const expVals = new Float32Array(capturedVocabSize);
+                for (let v = 0; v < capturedVocabSize; v++) {
+                  expVals[v] = Math.exp(capturedLogits.data[(rowIdx * capturedVocabSize) + v] - maxVal);
+                  sumExp += expVals[v];
+                }
+
+                const gradScale = gradOutput.data[0] / capturedCount;
+
+                for (let v = 0; v < capturedVocabSize; v++) {
+                  const softmax = expVals[v] / sumExp;
+                  const targetVal = v === targetToken ? 1 : 0;
+                  gradData[(rowIdx * capturedVocabSize) + v] = gradScale * (softmax - targetVal);
+                }
+              }
+            }
+          }
+
+          return [new Tensor(gradData, [...capturedLogits.shape], { dtype: capturedLogits.dtype })];
+        },
+        [logits],
+        new GradContext()
+      );
+    }
+
+    return result;
   }
 
   /**

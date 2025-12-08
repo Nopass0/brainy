@@ -281,7 +281,7 @@ export class QuantizedLinear extends Module {
     this.quantizedWeight = quantizer.quantize(linear.weight.data, weightParams);
 
     // Bias оставляем в FP32
-    this.biasData = this.bias ? linear.biasParam!.data.clone() : null;
+    this.biasData = this.bias ? linear.bias!.data.clone() : null;
   }
 
   forward(x: Tensor): Tensor {

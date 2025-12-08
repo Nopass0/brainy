@@ -87,10 +87,15 @@ console.log('Подготовка обучающих данных...');
 const seqLength = 32;
 const sequences: number[][] = [];
 
-const fullEncoded = tokenizer.encode(corpus, false);
+// Токенизируем напрямую без padding
+const tokens = tokenizer.tokenize(corpus);
+const tokenIds = tokens.map(t => tokenizer.getTokenId(t));
 
-for (let i = 0; i < fullEncoded.inputIds.length - seqLength; i += seqLength / 2) {
-  const seq = fullEncoded.inputIds.slice(i, i + seqLength + 1);
+console.log(`Всего токенов в корпусе: ${tokenIds.length}`);
+
+// Создаём последовательности с 50% overlap
+for (let i = 0; i < tokenIds.length - seqLength; i += seqLength / 2) {
+  const seq = tokenIds.slice(i, i + seqLength + 1);
   if (seq.length === seqLength + 1) {
     sequences.push(seq);
   }

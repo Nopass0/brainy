@@ -483,55 +483,19 @@ export class CheckpointManager {
   }
 
   /**
-   * GZIP сжатие
+   * GZIP сжатие (использует Bun.gzipSync)
    */
   private async gzipCompress(data: Uint8Array): Promise<Uint8Array> {
-    const stream = new Blob([data]).stream();
-    const compressedStream = stream.pipeThrough(new CompressionStream('gzip'));
-    const chunks: Uint8Array[] = [];
-    const reader = compressedStream.getReader();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-    }
-
-    const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-    const result = new Uint8Array(totalLength);
-    let offset = 0;
-    for (const chunk of chunks) {
-      result.set(chunk, offset);
-      offset += chunk.length;
-    }
-
-    return result;
+    // Bun имеет встроенную поддержку gzip
+    return Bun.gzipSync(data);
   }
 
   /**
-   * GZIP распаковка
+   * GZIP распаковка (использует Bun.gunzipSync)
    */
   private async gzipDecompress(data: Uint8Array): Promise<Uint8Array> {
-    const stream = new Blob([data]).stream();
-    const decompressedStream = stream.pipeThrough(new DecompressionStream('gzip'));
-    const chunks: Uint8Array[] = [];
-    const reader = decompressedStream.getReader();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-    }
-
-    const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-    const result = new Uint8Array(totalLength);
-    let offset = 0;
-    for (const chunk of chunks) {
-      result.set(chunk, offset);
-      offset += chunk.length;
-    }
-
-    return result;
+    // Bun имеет встроенную поддержку gunzip
+    return Bun.gunzipSync(data);
   }
 
   /**

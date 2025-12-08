@@ -9,6 +9,7 @@ import {
   zeros,
   ones,
   rand,
+  Tensor,
   Adam,
   DType,
   TensorDataset,
@@ -127,7 +128,7 @@ const batchSize = 16;
 vae.train();
 
 const trainTensors = trainImages.map(img =>
-  new (tensor as any)(img, [1, imageSize, imageSize])
+  new Tensor(img, [1, imageSize, imageSize])
 );
 
 for (let epoch = 0; epoch < numEpochs; epoch++) {
@@ -148,7 +149,7 @@ for (let epoch = 0; epoch < numEpochs; epoch++) {
     for (let j = 0; j < batch.length; j++) {
       batchData.set(batch[j].data, j * imageSize * imageSize);
     }
-    const batchTensor = new (tensor as any)(batchData, [batchSize, 1, imageSize, imageSize]);
+    const batchTensor = new Tensor(batchData, [batchSize, 1, imageSize, imageSize]);
 
     // Forward pass
     const output = vae.forward(batchTensor);
@@ -191,7 +192,7 @@ const testBatchData = new Float32Array(4 * imageSize * imageSize);
 for (let i = 0; i < testSamples.length; i++) {
   testBatchData.set(testSamples[i], i * imageSize * imageSize);
 }
-const testBatch = new (tensor as any)(testBatchData, [4, 1, imageSize, imageSize]);
+const testBatch = new Tensor(testBatchData, [4, 1, imageSize, imageSize]);
 
 // Реконструируем
 const reconstructed = vae.reconstruct(testBatch);
@@ -251,8 +252,8 @@ const img2Data = new Float32Array(imageSize * imageSize);
 img1Data.set(trainImages[0]);
 img2Data.set(trainImages[1]);
 
-const img1 = new (tensor as any)(img1Data, [1, 1, imageSize, imageSize]);
-const img2 = new (tensor as any)(img2Data, [1, 1, imageSize, imageSize]);
+const img1 = new Tensor(img1Data, [1, 1, imageSize, imageSize]);
+const img2 = new Tensor(img2Data, [1, 1, imageSize, imageSize]);
 
 const interpolations = vae.interpolate(img1, img2, 5);
 
@@ -278,7 +279,7 @@ const allTestData = new Float32Array(testImages.length * imageSize * imageSize);
 for (let i = 0; i < testImages.length; i++) {
   allTestData.set(testImages[i], i * imageSize * imageSize);
 }
-const allTestTensor = new (tensor as any)(allTestData, [testImages.length, 1, imageSize, imageSize]);
+const allTestTensor = new Tensor(allTestData, [testImages.length, 1, imageSize, imageSize]);
 
 const latentVectors = vae.encode(allTestTensor);
 

@@ -705,11 +705,14 @@ export class WordPieceTokenizer extends Tokenizer {
 /**
  * Простой символьный токенизатор
  * Разбивает текст на отдельные символы
+ * Поддерживает Unicode (включая кириллицу)
  */
 export class CharTokenizer extends Tokenizer {
+  private dynamicVocab: boolean = true;
+
   constructor(config: Partial<TokenizerConfig> = {}) {
     super({
-      vocabSize: 256,
+      vocabSize: 65536, // Support Unicode
       maxLength: 512,
       ...config,
     });
@@ -729,9 +732,29 @@ export class CharTokenizer extends Tokenizer {
       id++;
     }
 
-    // Все ASCII символы
-    for (let i = 0; i < 128; i++) {
+    // ASCII символы (32-126 - printable)
+    for (let i = 32; i < 127; i++) {
       const char = String.fromCharCode(i);
+      if (!this.vocab.has(char)) {
+        this.vocab.set(char, id);
+        this.reverseVocab.set(id, char);
+        id++;
+      }
+    }
+
+    // Cyrillic characters (U+0400 - U+04FF)
+    for (let i = 0x0400; i <= 0x04ff; i++) {
+      const char = String.fromCharCode(i);
+      if (!this.vocab.has(char)) {
+        this.vocab.set(char, id);
+        this.reverseVocab.set(id, char);
+        id++;
+      }
+    }
+
+    // Common punctuation and special chars
+    const extraChars = '\n\t\r';
+    for (const char of extraChars) {
       if (!this.vocab.has(char)) {
         this.vocab.set(char, id);
         this.reverseVocab.set(id, char);
@@ -741,10 +764,26 @@ export class CharTokenizer extends Tokenizer {
   }
 
   /**
+   * Добавляет символ в словарь если его нет
+   */
+  private ensureChar(char: string): void {
+    if (!this.vocab.has(char) && this.dynamicVocab) {
+      const id = this.vocab.size;
+      this.vocab.set(char, id);
+      this.reverseVocab.set(id, char);
+    }
+  }
+
+  /**
    * Токенизирует текст
    */
   tokenize(text: string): string[] {
-    return text.split('');
+    const chars = [...text]; // Proper Unicode splitting
+    // Ensure all characters are in vocab
+    for (const char of chars) {
+      this.ensureChar(char);
+    }
+    return chars;
   }
 
   /**
@@ -752,6 +791,17 @@ export class CharTokenizer extends Tokenizer {
    */
   protected detokenize(tokens: string[]): string {
     return tokens.join('');
+  }
+
+  /**
+   * Обучает токенизатор на корпусе текстов (добавляет все символы)
+   */
+  train(texts: string[]): void {
+    for (const text of texts) {
+      for (const char of [...text]) {
+        this.ensureChar(char);
+      }
+    }
   }
 }
 
