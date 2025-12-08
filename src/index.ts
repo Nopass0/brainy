@@ -258,6 +258,13 @@ export {
   TRMClassifier,
   createTinyTRM,
   createReasoningTRM,
+  createEnhancedTRM,
+  createPonderingTRM,
+  createMathTRM,
+  createSequenceTRM,
+  initTRMGPU,
+  isTRMGPUAvailable,
+  getTRMGPUBackend,
 } from './models/trm';
 export type { TRMConfig } from './models/trm';
 
