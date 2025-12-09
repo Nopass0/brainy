@@ -555,13 +555,18 @@ export class GPUBackend {
    */
   async add(a: Tensor, b: Tensor): Promise<Tensor> {
     const startTime = performance.now();
+    const size = a.data.byteLength;
 
     // Создаём буферы
     const bufferA = createBuffer(this.device, a, GPUBufferUsage.STORAGE);
     const bufferB = createBuffer(this.device, b, GPUBufferUsage.STORAGE);
     const bufferResult = this.device.createBuffer({
-      size: a.data.byteLength,
+      size,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    const stagingBuffer = this.device.createBuffer({
+      size,
+      usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
     });
 
     // Создаём pipeline
@@ -577,7 +582,7 @@ export class GPUBackend {
       ],
     });
 
-    // Запускаем compute pass
+    // Single command encoder for compute + copy (bun-webgpu workaround)
     const commandEncoder = this.device.createCommandEncoder();
     const passEncoder = commandEncoder.beginComputePass();
     passEncoder.setPipeline(pipeline);
@@ -585,18 +590,17 @@ export class GPUBackend {
     passEncoder.dispatchWorkgroups(Math.ceil(a.size / 256));
     passEncoder.end();
 
-    this.device.queue.submit([commandEncoder.finish()]);
+    // Copy result to staging buffer in same command encoder
+    commandEncoder.copyBufferToBuffer(bufferResult, 0, stagingBuffer, 0, size);
 
-    // Wait for GPU work to complete (workaround for bun-webgpu timing issues)
+    // Single submission
+    this.device.queue.submit([commandEncoder.finish()]);
     await this.device.queue.onSubmittedWorkDone();
 
-    // Читаем результат
-    const resultData = await readBuffer(this.device, bufferResult, a.data.byteLength);
-
-    // Очищаем буферы
-    safeDestroyBuffer(bufferA);
-    safeDestroyBuffer(bufferB);
-    safeDestroyBuffer(bufferResult);
+    // Read from staging buffer
+    await stagingBuffer.mapAsync(GPUMapMode.READ);
+    const resultData = new Float32Array(stagingBuffer.getMappedRange().slice(0));
+    stagingBuffer.unmap();
 
     const result = new Tensor(resultData, [...a.shape], {
       dtype: a.dtype,
