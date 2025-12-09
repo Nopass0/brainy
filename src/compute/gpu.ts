@@ -481,6 +481,17 @@ async function createPipeline(device: GPUDevice, shaderCode: string, label: stri
 }
 
 /**
+ * Safely destroy a GPU buffer (workaround for bun-webgpu bug)
+ */
+function safeDestroyBuffer(buffer: GPUBuffer): void {
+  try {
+    buffer.destroy();
+  } catch {
+    // Ignore destroy errors - bun-webgpu has a bug with buffer lifecycle
+  }
+}
+
+/**
  * Создаёт GPU буфер из тензора
  */
 function createBuffer(device: GPUDevice, tensor: Tensor, usage: GPUBufferUsageFlags): GPUBuffer {
@@ -512,7 +523,7 @@ async function readBuffer(device: GPUDevice, buffer: GPUBuffer, size: number): P
   await stagingBuffer.mapAsync(GPUMapMode.READ);
   const data = new Float32Array(stagingBuffer.getMappedRange().slice(0));
   stagingBuffer.unmap();
-  stagingBuffer.destroy();
+  safeDestroyBuffer(stagingBuffer);
 
   return data;
 }
@@ -570,9 +581,9 @@ export class GPUBackend {
     const resultData = await readBuffer(this.device, bufferResult, a.data.byteLength);
 
     // Очищаем буферы
-    bufferA.destroy();
-    bufferB.destroy();
-    bufferResult.destroy();
+    safeDestroyBuffer(bufferA);
+    safeDestroyBuffer(bufferB);
+    safeDestroyBuffer(bufferResult);
 
     const result = new Tensor(resultData, [...a.shape], {
       dtype: a.dtype,
@@ -618,9 +629,9 @@ export class GPUBackend {
 
     const resultData = await readBuffer(this.device, bufferResult, a.data.byteLength);
 
-    bufferA.destroy();
-    bufferB.destroy();
-    bufferResult.destroy();
+    safeDestroyBuffer(bufferA);
+    safeDestroyBuffer(bufferB);
+    safeDestroyBuffer(bufferResult);
 
     const result = new Tensor(resultData, [...a.shape], {
       dtype: a.dtype,
@@ -687,10 +698,10 @@ export class GPUBackend {
 
     const resultData = await readBuffer(this.device, bufferResult, M * N * 4);
 
-    bufferA.destroy();
-    bufferB.destroy();
-    bufferResult.destroy();
-    dimsBuffer.destroy();
+    safeDestroyBuffer(bufferA);
+    safeDestroyBuffer(bufferB);
+    safeDestroyBuffer(bufferResult);
+    safeDestroyBuffer(dimsBuffer);
 
     const result = new Tensor(resultData, [M, N], {
       dtype: a.dtype,
@@ -734,8 +745,8 @@ export class GPUBackend {
 
     const resultData = await readBuffer(this.device, bufferOutput, input.data.byteLength);
 
-    bufferInput.destroy();
-    bufferOutput.destroy();
+    safeDestroyBuffer(bufferInput);
+    safeDestroyBuffer(bufferOutput);
 
     const result = new Tensor(resultData, [...input.shape], {
       dtype: input.dtype,
@@ -779,8 +790,8 @@ export class GPUBackend {
 
     const resultData = await readBuffer(this.device, bufferOutput, input.data.byteLength);
 
-    bufferInput.destroy();
-    bufferOutput.destroy();
+    safeDestroyBuffer(bufferInput);
+    safeDestroyBuffer(bufferOutput);
 
     const result = new Tensor(resultData, [...input.shape], {
       dtype: input.dtype,
@@ -824,8 +835,8 @@ export class GPUBackend {
 
     const resultData = await readBuffer(this.device, bufferOutput, input.data.byteLength);
 
-    bufferInput.destroy();
-    bufferOutput.destroy();
+    safeDestroyBuffer(bufferInput);
+    safeDestroyBuffer(bufferOutput);
 
     const result = new Tensor(resultData, [...input.shape], {
       dtype: input.dtype,
@@ -869,8 +880,8 @@ export class GPUBackend {
 
     const resultData = await readBuffer(this.device, bufferOutput, input.data.byteLength);
 
-    bufferInput.destroy();
-    bufferOutput.destroy();
+    safeDestroyBuffer(bufferInput);
+    safeDestroyBuffer(bufferOutput);
 
     const result = new Tensor(resultData, [...input.shape], {
       dtype: input.dtype,
