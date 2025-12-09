@@ -6,13 +6,45 @@
 
 import { Tensor } from '../core/tensor';
 
-// Try to import Node.js WebGPU if available
-let nodeWebGPU: { create: (options?: string[]) => GPU; globals: Record<string, unknown> } | null = null;
-try {
-  // Dynamic import for Node.js WebGPU
-  nodeWebGPU = require('webgpu');
-} catch {
-  // Not available, will use browser WebGPU if present
+// Environment variable to disable GPU
+const DISABLE_GPU = process.env.BRAINY_DISABLE_GPU === '1' || process.env.BRAINY_DISABLE_GPU === 'true';
+
+// WebGPU provider interface
+interface WebGPUProvider {
+  type: 'bun-webgpu' | 'webgpu' | 'browser';
+  gpu: GPU;
+}
+
+// Try to import WebGPU (Bun or Node.js)
+let webgpuProvider: WebGPUProvider | null = null;
+
+if (!DISABLE_GPU) {
+  // Try bun-webgpu first (for Bun runtime)
+  try {
+    const bunWebGPU = require('bun-webgpu');
+    if (bunWebGPU && bunWebGPU.gpu) {
+      webgpuProvider = { type: 'bun-webgpu', gpu: bunWebGPU.gpu };
+    }
+  } catch {
+    // Not available
+  }
+
+  // Try Node.js webgpu (dawn) as fallback
+  if (!webgpuProvider) {
+    try {
+      const nodeWebGPU = require('webgpu');
+      if (nodeWebGPU && nodeWebGPU.create) {
+        // Apply globals
+        if (nodeWebGPU.globals) {
+          Object.assign(globalThis, nodeWebGPU.globals);
+        }
+        const gpu = nodeWebGPU.create([]);
+        webgpuProvider = { type: 'webgpu', gpu };
+      }
+    } catch {
+      // Not available
+    }
+  }
 }
 
 /**
@@ -144,36 +176,34 @@ export class DeviceManager {
 
   /**
    * Инициализация WebGPU
-   * Supports both browser WebGPU and Node.js WebGPU (via webgpu package)
+   * Supports: bun-webgpu (Bun), webgpu/dawn (Node.js), browser WebGPU
    */
   private async initGPU(): Promise<void> {
     let gpu: GPU | null = null;
+    let providerName = 'unknown';
 
-    // Try Node.js WebGPU first (webgpu package)
-    if (nodeWebGPU) {
-      try {
-        // Apply WebGPU globals if available
-        if (nodeWebGPU.globals) {
-          Object.assign(globalThis, nodeWebGPU.globals);
-        }
-        // Create GPU instance - try different backends
-        // Options format: 'backend=vulkan', 'backend=d3d12', 'backend=metal'
-        gpu = nodeWebGPU.create([]);
-        console.log('Using Node.js WebGPU (dawn)');
-      } catch (e) {
-        console.warn('Node.js WebGPU initialization failed:', e);
-      }
+    // Use pre-initialized provider if available
+    if (webgpuProvider) {
+      gpu = webgpuProvider.gpu;
+      providerName = webgpuProvider.type;
     }
 
     // Fallback to browser WebGPU
     if (!gpu && typeof navigator !== 'undefined' && 'gpu' in navigator) {
       gpu = (navigator as Navigator & { gpu: GPU }).gpu;
-      console.log('Using browser WebGPU');
+      providerName = 'browser';
     }
 
     if (!gpu) {
-      throw new Error('WebGPU not supported. Install "webgpu" package for Node.js or use a WebGPU-enabled browser.');
+      throw new Error(
+        'WebGPU not supported.\n' +
+        '  For Bun: npm install bun-webgpu\n' +
+        '  For Node.js: npm install webgpu\n' +
+        '  For Browser: Use Chrome/Edge with WebGPU enabled'
+      );
     }
+
+    console.log(`Using WebGPU provider: ${providerName}`);
 
     this.gpuAdapter = await gpu.requestAdapter({
       powerPreference: 'high-performance',
@@ -358,15 +388,35 @@ export function getDevice(): DeviceManager {
 }
 
 /**
- * Проверяет поддержку WebGPU (browser or Node.js)
+ * Проверяет поддержку WebGPU (Bun, Node.js, or browser)
  */
 export function isWebGPUSupported(): boolean {
-  // Check Node.js WebGPU
-  if (nodeWebGPU) {
+  // Check if GPU is disabled
+  if (DISABLE_GPU) {
+    return false;
+  }
+  // Check if we have a WebGPU provider
+  if (webgpuProvider) {
     return true;
   }
   // Check browser WebGPU
   return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
+
+/**
+ * Получает информацию о WebGPU провайдере
+ */
+export function getWebGPUProviderInfo(): { available: boolean; type: string } {
+  if (DISABLE_GPU) {
+    return { available: false, type: 'disabled' };
+  }
+  if (webgpuProvider) {
+    return { available: true, type: webgpuProvider.type };
+  }
+  if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
+    return { available: true, type: 'browser' };
+  }
+  return { available: false, type: 'none' };
 }
 
 /**
