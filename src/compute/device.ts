@@ -34,30 +34,17 @@ async function initWebGPUProviderAsync(): Promise<void> {
   if (DISABLE_GPU) return;
 
   if (IS_BUN) {
-    // Bun runtime - use bun-webgpu with createWebGPUDevice directly
-    // This bypasses the buggy InstanceTicker in setupGlobals()
+    // Bun runtime - use bun-webgpu with setupGlobals
     try {
       const bunWebGPU = await import('bun-webgpu');
-      if (bunWebGPU && bunWebGPU.createWebGPUDevice) {
-        // Store the module for direct device creation
-        (globalThis as any).__bunWebGPU = bunWebGPU;
-        // Create a minimal GPU-like object that delegates to createWebGPUDevice
-        const gpu = {
-          async requestAdapter() {
-            return {
-              async requestDevice() {
-                return await bunWebGPU.createWebGPUDevice();
-              },
-              info: { vendor: 'bun-webgpu', device: 'bun-webgpu-device' },
-              features: new Set(),
-              limits: {},
-            };
-          },
-        };
-        webgpuProvider = { type: 'bun-webgpu', gpu: gpu as unknown as GPU };
+      if (bunWebGPU && bunWebGPU.setupGlobals) {
+        bunWebGPU.setupGlobals();
+        if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
+          webgpuProvider = { type: 'bun-webgpu', gpu: (navigator as any).gpu };
+        }
       }
     } catch {
-      // bun-webgpu not installed - GPU will not be available
+      // bun-webgpu not installed
     }
   } else if (IS_NODE) {
     // Node.js runtime - use webgpu (dawn)
@@ -236,40 +223,7 @@ export class DeviceManager {
     // Wait for async provider initialization
     await getInitPromise();
 
-    // Special handling for bun-webgpu - use createWebGPUDevice directly
-    if (IS_BUN && (globalThis as any).__bunWebGPU) {
-      try {
-        const bunWebGPU = (globalThis as any).__bunWebGPU;
-        this.gpuDevice = await bunWebGPU.createWebGPUDevice();
-        providerName = 'bun-webgpu';
-
-        // Get device info
-        const deviceInfo = await this.gpuDevice.adapterInfo;
-        if (deviceInfo) {
-          const name = deviceInfo.device || deviceInfo.description || 'Unknown';
-          const vendor = deviceInfo.vendor || 'Unknown';
-          console.log(`Using WebGPU provider: ${providerName}`);
-          console.log(`GPU: ${name} (${vendor})`);
-
-          // Store GPU info
-          this.gpuInfo = {
-            available: true,
-            name,
-            vendor,
-            maxBufferSize: this.gpuDevice.limits?.maxStorageBufferBindingSize || 128 * 1024 * 1024,
-          };
-        }
-
-        this.gpuAvailable = true;
-        console.log('GPU initialized successfully');
-        return;
-      } catch (e) {
-        console.error('Failed to create WebGPU device with bun-webgpu:', e);
-        throw e;
-      }
-    }
-
-    // Standard WebGPU initialization for browser/Node.js
+    // Standard WebGPU initialization
     let gpu: GPU | null = null;
 
     // Use pre-initialized provider if available
