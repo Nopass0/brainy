@@ -309,6 +309,17 @@ export {
 } from './models/trm-lite';
 export type { TRMLiteConfig } from './models/trm-lite';
 
+// TRM-Pro - Production-ready TRM with 98%+ accuracy
+export {
+  TRMPro,
+  TRMProClassifier,
+  createTinyTRMPro,
+  createStandardTRMPro,
+  createReasoningTRMPro,
+  createBinaryTRMPro,
+} from './models/trm-pro';
+export type { TRMProConfig } from './models/trm-pro';
+
 export {
   MultimodalFewShot,
   createSmallMultimodal,
