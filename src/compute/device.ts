@@ -1,9 +1,19 @@
 /**
  * @fileoverview Менеджер вычислительных устройств
  * @description Унифицированный интерфейс для GPU и CPU вычислений
+ * @supports Browser WebGPU, Node.js WebGPU (via webgpu package)
  */
 
 import { Tensor } from '../core/tensor';
+
+// Try to import Node.js WebGPU if available
+let nodeWebGPU: { create: (options?: string[]) => GPU; globals: Record<string, unknown> } | null = null;
+try {
+  // Dynamic import for Node.js WebGPU
+  nodeWebGPU = require('webgpu');
+} catch {
+  // Not available, will use browser WebGPU if present
+}
 
 /**
  * Типы вычислительных устройств
@@ -134,20 +144,49 @@ export class DeviceManager {
 
   /**
    * Инициализация WebGPU
+   * Supports both browser WebGPU and Node.js WebGPU (via webgpu package)
    */
   private async initGPU(): Promise<void> {
-    // Проверяем наличие WebGPU
-    if (typeof navigator === 'undefined' || !('gpu' in navigator)) {
-      throw new Error('WebGPU not supported in this environment');
+    let gpu: GPU | null = null;
+
+    // Try Node.js WebGPU first (webgpu package)
+    if (nodeWebGPU) {
+      try {
+        // Apply WebGPU globals if available
+        if (nodeWebGPU.globals) {
+          Object.assign(globalThis, nodeWebGPU.globals);
+        }
+        // Create GPU instance - try different backends
+        // Options format: 'backend=vulkan', 'backend=d3d12', 'backend=metal'
+        gpu = nodeWebGPU.create([]);
+        console.log('Using Node.js WebGPU (dawn)');
+      } catch (e) {
+        console.warn('Node.js WebGPU initialization failed:', e);
+      }
     }
 
-    const gpu = (navigator as Navigator & { gpu: GPU }).gpu;
+    // Fallback to browser WebGPU
+    if (!gpu && typeof navigator !== 'undefined' && 'gpu' in navigator) {
+      gpu = (navigator as Navigator & { gpu: GPU }).gpu;
+      console.log('Using browser WebGPU');
+    }
+
+    if (!gpu) {
+      throw new Error('WebGPU not supported. Install "webgpu" package for Node.js or use a WebGPU-enabled browser.');
+    }
+
     this.gpuAdapter = await gpu.requestAdapter({
       powerPreference: 'high-performance',
     });
 
     if (!this.gpuAdapter) {
-      throw new Error('No GPU adapter found');
+      throw new Error('No GPU adapter found. Make sure you have a compatible GPU and drivers.');
+    }
+
+    // Log GPU info
+    const adapterInfo = this.gpuAdapter.info;
+    if (adapterInfo) {
+      console.log(`GPU: ${adapterInfo.device || 'Unknown'} (${adapterInfo.vendor || 'Unknown vendor'})`);
     }
 
     this.gpuDevice = await this.gpuAdapter.requestDevice({
@@ -158,6 +197,7 @@ export class DeviceManager {
     });
 
     this.gpuAvailable = true;
+    console.log('GPU initialized successfully');
 
     // Обработка потери устройства
     this.gpuDevice.lost.then((info) => {
@@ -318,9 +358,14 @@ export function getDevice(): DeviceManager {
 }
 
 /**
- * Проверяет поддержку WebGPU
+ * Проверяет поддержку WebGPU (browser or Node.js)
  */
 export function isWebGPUSupported(): boolean {
+  // Check Node.js WebGPU
+  if (nodeWebGPU) {
+    return true;
+  }
+  // Check browser WebGPU
   return typeof navigator !== 'undefined' && 'gpu' in navigator;
 }
 
