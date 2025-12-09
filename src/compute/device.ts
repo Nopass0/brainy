@@ -39,8 +39,13 @@ function initWebGPUProvider(): void {
       // Use dynamic require to prevent static analysis
       const moduleName = 'bun-webgpu';
       const bunWebGPU = require(moduleName);
-      if (bunWebGPU && bunWebGPU.gpu) {
-        webgpuProvider = { type: 'bun-webgpu', gpu: bunWebGPU.gpu };
+      // bun-webgpu uses setupGlobals() to set navigator.gpu
+      if (bunWebGPU && bunWebGPU.setupGlobals) {
+        bunWebGPU.setupGlobals();
+        // After setupGlobals, navigator.gpu should be available
+        if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
+          webgpuProvider = { type: 'bun-webgpu', gpu: (navigator as any).gpu };
+        }
       }
     } catch {
       // bun-webgpu not installed - GPU will not be available
