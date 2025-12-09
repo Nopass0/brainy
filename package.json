@@ -36,7 +36,10 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@webgpu/types": "^0.1.67",
-    "webgpu": "^0.3.8"
+    "@webgpu/types": "^0.1.67"
+  },
+  "optionalDependencies": {
+    "webgpu": "^0.3.8",
+    "bun-webgpu": "^0.1.4"
   }
 }
