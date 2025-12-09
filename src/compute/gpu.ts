@@ -578,6 +578,9 @@ export class GPUBackend {
 
     this.device.queue.submit([commandEncoder.finish()]);
 
+    // Wait for GPU work to complete (workaround for bun-webgpu timing issues)
+    await this.device.queue.onSubmittedWorkDone();
+
     // Читаем результат
     const resultData = await readBuffer(this.device, bufferResult, a.data.byteLength);
 
@@ -627,6 +630,7 @@ export class GPUBackend {
     passEncoder.end();
 
     this.device.queue.submit([commandEncoder.finish()]);
+    await this.device.queue.onSubmittedWorkDone();
 
     const resultData = await readBuffer(this.device, bufferResult, a.data.byteLength);
 
@@ -696,6 +700,7 @@ export class GPUBackend {
     passEncoder.end();
 
     this.device.queue.submit([commandEncoder.finish()]);
+    await this.device.queue.onSubmittedWorkDone();
 
     const resultData = await readBuffer(this.device, bufferResult, M * N * 4);
 
@@ -743,6 +748,7 @@ export class GPUBackend {
     passEncoder.end();
 
     this.device.queue.submit([commandEncoder.finish()]);
+    await this.device.queue.onSubmittedWorkDone();
 
     const resultData = await readBuffer(this.device, bufferOutput, input.data.byteLength);
 
@@ -788,6 +794,7 @@ export class GPUBackend {
     passEncoder.end();
 
     this.device.queue.submit([commandEncoder.finish()]);
+    await this.device.queue.onSubmittedWorkDone();
 
     const resultData = await readBuffer(this.device, bufferOutput, input.data.byteLength);
 
@@ -833,6 +840,7 @@ export class GPUBackend {
     passEncoder.end();
 
     this.device.queue.submit([commandEncoder.finish()]);
+    await this.device.queue.onSubmittedWorkDone();
 
     const resultData = await readBuffer(this.device, bufferOutput, input.data.byteLength);
 
@@ -878,6 +886,7 @@ export class GPUBackend {
     passEncoder.end();
 
     this.device.queue.submit([commandEncoder.finish()]);
+    await this.device.queue.onSubmittedWorkDone();
 
     const resultData = await readBuffer(this.device, bufferOutput, input.data.byteLength);
 
