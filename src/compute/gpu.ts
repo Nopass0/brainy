@@ -493,16 +493,17 @@ function safeDestroyBuffer(buffer: GPUBuffer): void {
 
 /**
  * Создаёт GPU буфер из тензора
+ * Uses writeBuffer instead of mappedAtCreation to avoid bun-webgpu bugs
  */
 function createBuffer(device: GPUDevice, tensor: Tensor, usage: GPUBufferUsageFlags): GPUBuffer {
+  // Add COPY_DST to allow writeBuffer
   const buffer = device.createBuffer({
     size: tensor.data.byteLength,
-    usage,
-    mappedAtCreation: true,
+    usage: usage | GPUBufferUsage.COPY_DST,
   });
 
-  new Float32Array(buffer.getMappedRange()).set(tensor.data as Float32Array);
-  buffer.unmap();
+  // Use writeBuffer instead of mappedAtCreation (workaround for bun-webgpu bug)
+  device.queue.writeBuffer(buffer, 0, tensor.data as Float32Array);
 
   return buffer;
 }
