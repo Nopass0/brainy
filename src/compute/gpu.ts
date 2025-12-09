@@ -480,14 +480,23 @@ async function createPipeline(device: GPUDevice, shaderCode: string, label: stri
   return pipeline;
 }
 
+// Detect if running in Bun
+const IS_BUN_GPU = typeof globalThis.Bun !== 'undefined';
+
 /**
  * Safely destroy a GPU buffer (workaround for bun-webgpu bug)
+ * On Bun: Skip destroy entirely - bun-webgpu has bugs with buffer lifecycle
+ * Buffers will be garbage collected instead
  */
-function safeDestroyBuffer(buffer: GPUBuffer): void {
+function safeDestroyBuffer(_buffer: GPUBuffer): void {
+  if (IS_BUN_GPU) {
+    // Skip destroy on Bun - causes crashes in bun-webgpu
+    return;
+  }
   try {
-    buffer.destroy();
+    _buffer.destroy();
   } catch {
-    // Ignore destroy errors - bun-webgpu has a bug with buffer lifecycle
+    // Ignore destroy errors
   }
 }
 
