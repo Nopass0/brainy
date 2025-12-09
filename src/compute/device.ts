@@ -19,14 +19,26 @@ interface WebGPUProvider {
   gpu: GPU;
 }
 
-// Try to import WebGPU based on runtime
+// WebGPU provider - initialized lazily to avoid loading native modules at parse time
 let webgpuProvider: WebGPUProvider | null = null;
+let webgpuInitialized = false;
 
-if (!DISABLE_GPU) {
+/**
+ * Lazily initialize WebGPU provider
+ * Uses dynamic require to prevent Bun from statically analyzing and pre-loading modules
+ */
+function initWebGPUProvider(): void {
+  if (webgpuInitialized) return;
+  webgpuInitialized = true;
+
+  if (DISABLE_GPU) return;
+
   if (IS_BUN) {
     // Bun runtime - ONLY use bun-webgpu, never try dawn (it crashes Bun)
     try {
-      const bunWebGPU = require('bun-webgpu');
+      // Use dynamic require to prevent static analysis
+      const moduleName = 'bun-webgpu';
+      const bunWebGPU = require(moduleName);
       if (bunWebGPU && bunWebGPU.gpu) {
         webgpuProvider = { type: 'bun-webgpu', gpu: bunWebGPU.gpu };
       }
@@ -36,7 +48,9 @@ if (!DISABLE_GPU) {
   } else if (IS_NODE) {
     // Node.js runtime - use webgpu (dawn)
     try {
-      const nodeWebGPU = require('webgpu');
+      // Use dynamic require to prevent static analysis
+      const moduleName = 'webgpu';
+      const nodeWebGPU = require(moduleName);
       if (nodeWebGPU && nodeWebGPU.create) {
         // Apply globals
         if (nodeWebGPU.globals) {
@@ -186,6 +200,9 @@ export class DeviceManager {
   private async initGPU(): Promise<void> {
     let gpu: GPU | null = null;
     let providerName = 'unknown';
+
+    // Initialize provider lazily
+    initWebGPUProvider();
 
     // Use pre-initialized provider if available
     if (webgpuProvider) {
@@ -414,6 +431,8 @@ export function isWebGPUSupported(): boolean {
   if (DISABLE_GPU) {
     return false;
   }
+  // Initialize provider lazily
+  initWebGPUProvider();
   // Check if we have a WebGPU provider
   if (webgpuProvider) {
     return true;
@@ -431,6 +450,8 @@ export function getWebGPUProviderInfo(): { available: boolean; type: string; run
   if (DISABLE_GPU) {
     return { available: false, type: 'disabled', runtime };
   }
+  // Initialize provider lazily
+  initWebGPUProvider();
   if (webgpuProvider) {
     return { available: true, type: webgpuProvider.type, runtime };
   }
