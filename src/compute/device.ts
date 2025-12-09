@@ -6,13 +6,18 @@
 
 import { Tensor } from '../core/tensor';
 
-// Try to import Node.js WebGPU if available
+// Environment variable to disable GPU
+const DISABLE_GPU = process.env.BRAINY_DISABLE_GPU === '1' || process.env.BRAINY_DISABLE_GPU === 'true';
+
+// Try to import Node.js WebGPU if available (and not disabled)
 let nodeWebGPU: { create: (options?: string[]) => GPU; globals: Record<string, unknown> } | null = null;
-try {
-  // Dynamic import for Node.js WebGPU
-  nodeWebGPU = require('webgpu');
-} catch {
-  // Not available, will use browser WebGPU if present
+if (!DISABLE_GPU) {
+  try {
+    // Dynamic import for Node.js WebGPU
+    nodeWebGPU = require('webgpu');
+  } catch {
+    // Not available, will use browser WebGPU if present
+  }
 }
 
 /**
@@ -361,6 +366,10 @@ export function getDevice(): DeviceManager {
  * Проверяет поддержку WebGPU (browser or Node.js)
  */
 export function isWebGPUSupported(): boolean {
+  // Check if GPU is disabled
+  if (DISABLE_GPU) {
+    return false;
+  }
   // Check Node.js WebGPU
   if (nodeWebGPU) {
     return true;
