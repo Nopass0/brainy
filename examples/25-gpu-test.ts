@@ -10,6 +10,7 @@ import {
   getDevice,
   createGPUBackend,
   isGPUBackendAvailable,
+  getWebGPUProviderInfo,
   tensor,
   Tensor,
 } from '../src';
@@ -19,16 +20,22 @@ async function main() {
   console.log('GPU TEST');
   console.log('='.repeat(60));
 
-  // Check WebGPU support
-  console.log('\n1. Checking WebGPU support...');
-  const supported = isWebGPUSupported();
-  console.log(`   WebGPU supported: ${supported}`);
+  // Check runtime and WebGPU support
+  console.log('\n1. Checking environment...');
+  const providerInfo = getWebGPUProviderInfo();
+  console.log(`   Runtime: ${providerInfo.runtime}`);
+  console.log(`   WebGPU provider: ${providerInfo.type}`);
+  console.log(`   WebGPU available: ${providerInfo.available}`);
 
-  if (!supported) {
+  if (!providerInfo.available) {
     console.log('\n   WebGPU is not available.');
-    console.log('   For Node.js: npm install webgpu');
-    console.log('   For Bun: npm install bun-webgpu');
-    console.log('   For Browser: Use Chrome/Edge with WebGPU enabled');
+    if (providerInfo.runtime === 'bun') {
+      console.log('   For Bun: bun add bun-webgpu');
+    } else if (providerInfo.runtime === 'node') {
+      console.log('   For Node.js: npm install webgpu');
+    } else {
+      console.log('   For Browser: Use Chrome/Edge with WebGPU enabled');
+    }
     return;
   }
 
