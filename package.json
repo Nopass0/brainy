@@ -39,7 +39,6 @@
     "@webgpu/types": "^0.1.67"
   },
   "optionalDependencies": {
-    "webgpu": "^0.3.8",
     "bun-webgpu": "^0.1.4"
   }
 }
