@@ -268,6 +268,75 @@ export {
 } from './models/trm';
 export type { TRMConfig } from './models/trm';
 
+// TRM v2 - Advanced version with attention, memory, MoE
+export {
+  TRMv2,
+  TRMv2Classifier,
+  TRMv2Seq2Seq,
+  createTinyTRMv2,
+  createReasoningTRMv2,
+  createTextTRMv2,
+} from './models/trm-v2';
+export type { TRMv2Config } from './models/trm-v2';
+
+// TRM Ultra - Stable high-performance version
+export {
+  TRMUltra,
+  TRMUltraClassifier,
+  createTinyTRMUltra,
+  createReasoningTRMUltra,
+} from './models/trm-ultra';
+export type { TRMUltraConfig } from './models/trm-ultra';
+
+// TRM Final - Ultimate optimized version
+export {
+  TRMFinal,
+  TRMFinalClassifier,
+  createTinyTRMFinal,
+  createStandardTRMFinal,
+  createReasoningTRMFinal,
+} from './models/trm-final';
+export type { TRMFinalConfig } from './models/trm-final';
+
+// TRM-X - Extreme Performance TRM
+export {
+  TRMX,
+  TRMXClassifier,
+  createTinyTRMX,
+  createStandardTRMX,
+  createReasoningTRMX,
+} from './models/trm-x';
+export type { TRMXConfig } from './models/trm-x';
+
+// TRM-Lite - Simple and stable TRM
+export {
+  TRMLite,
+  createTinyTRMLite,
+  createStandardTRMLite,
+} from './models/trm-lite';
+export type { TRMLiteConfig } from './models/trm-lite';
+
+// TRM-Pro - Production-ready TRM with 98%+ accuracy
+export {
+  TRMPro,
+  TRMProClassifier,
+  createTinyTRMPro,
+  createStandardTRMPro,
+  createReasoningTRMPro,
+  createBinaryTRMPro,
+} from './models/trm-pro';
+export type { TRMProConfig } from './models/trm-pro';
+
+// TRM-Supreme - Ultimate TRM with residual scaling
+export {
+  TRMSupreme,
+  createTinyTRMSupreme,
+  createStandardTRMSupreme,
+  createReasoningTRMSupreme,
+  createBinaryTRMSupreme,
+} from './models/trm-supreme';
+export type { TRMSupremeConfig } from './models/trm-supreme';
+
 export {
   MultimodalFewShot,
   createSmallMultimodal,
