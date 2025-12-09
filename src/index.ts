@@ -320,6 +320,16 @@ export {
 } from './models/trm-pro';
 export type { TRMProConfig } from './models/trm-pro';
 
+// TRM-Supreme - Ultimate TRM with residual scaling
+export {
+  TRMSupreme,
+  createTinyTRMSupreme,
+  createStandardTRMSupreme,
+  createReasoningTRMSupreme,
+  createBinaryTRMSupreme,
+} from './models/trm-supreme';
+export type { TRMSupremeConfig } from './models/trm-supreme';
+
 export {
   MultimodalFewShot,
   createSmallMultimodal,
