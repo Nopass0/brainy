@@ -9,28 +9,32 @@ import { Tensor } from '../core/tensor';
 // Environment variable to disable GPU
 const DISABLE_GPU = process.env.BRAINY_DISABLE_GPU === '1' || process.env.BRAINY_DISABLE_GPU === 'true';
 
+// Detect runtime environment
+const IS_BUN = typeof globalThis.Bun !== 'undefined';
+const IS_NODE = typeof process !== 'undefined' && process.versions?.node && !IS_BUN;
+
 // WebGPU provider interface
 interface WebGPUProvider {
   type: 'bun-webgpu' | 'webgpu' | 'browser';
   gpu: GPU;
 }
 
-// Try to import WebGPU (Bun or Node.js)
+// Try to import WebGPU based on runtime
 let webgpuProvider: WebGPUProvider | null = null;
 
 if (!DISABLE_GPU) {
-  // Try bun-webgpu first (for Bun runtime)
-  try {
-    const bunWebGPU = require('bun-webgpu');
-    if (bunWebGPU && bunWebGPU.gpu) {
-      webgpuProvider = { type: 'bun-webgpu', gpu: bunWebGPU.gpu };
+  if (IS_BUN) {
+    // Bun runtime - ONLY use bun-webgpu, never try dawn (it crashes Bun)
+    try {
+      const bunWebGPU = require('bun-webgpu');
+      if (bunWebGPU && bunWebGPU.gpu) {
+        webgpuProvider = { type: 'bun-webgpu', gpu: bunWebGPU.gpu };
+      }
+    } catch {
+      // bun-webgpu not installed - GPU will not be available
     }
-  } catch {
-    // Not available
-  }
-
-  // Try Node.js webgpu (dawn) as fallback
-  if (!webgpuProvider) {
+  } else if (IS_NODE) {
+    // Node.js runtime - use webgpu (dawn)
     try {
       const nodeWebGPU = require('webgpu');
       if (nodeWebGPU && nodeWebGPU.create) {
@@ -42,9 +46,10 @@ if (!DISABLE_GPU) {
         webgpuProvider = { type: 'webgpu', gpu };
       }
     } catch {
-      // Not available
+      // webgpu not installed
     }
   }
+  // Browser - will use navigator.gpu in initGPU()
 }
 
 /**
@@ -195,12 +200,26 @@ export class DeviceManager {
     }
 
     if (!gpu) {
-      throw new Error(
-        'WebGPU not supported.\n' +
-        '  For Bun: npm install bun-webgpu\n' +
-        '  For Node.js: npm install webgpu\n' +
-        '  For Browser: Use Chrome/Edge with WebGPU enabled'
-      );
+      if (IS_BUN) {
+        throw new Error(
+          'WebGPU not available in Bun.\n' +
+          '  Install: bun add bun-webgpu\n' +
+          '  Note: bun-webgpu requires compatible GPU and drivers'
+        );
+      } else if (IS_NODE) {
+        throw new Error(
+          'WebGPU not available in Node.js.\n' +
+          '  Install: npm install webgpu\n' +
+          '  Note: Requires Vulkan-compatible GPU and drivers'
+        );
+      } else {
+        throw new Error(
+          'WebGPU not supported.\n' +
+          '  For Browser: Use Chrome/Edge with WebGPU enabled\n' +
+          '  For Bun: bun add bun-webgpu\n' +
+          '  For Node.js: npm install webgpu'
+        );
+      }
     }
 
     console.log(`Using WebGPU provider: ${providerName}`);
@@ -406,17 +425,19 @@ export function isWebGPUSupported(): boolean {
 /**
  * Получает информацию о WebGPU провайдере
  */
-export function getWebGPUProviderInfo(): { available: boolean; type: string } {
+export function getWebGPUProviderInfo(): { available: boolean; type: string; runtime: string } {
+  const runtime = IS_BUN ? 'bun' : IS_NODE ? 'node' : 'browser';
+
   if (DISABLE_GPU) {
-    return { available: false, type: 'disabled' };
+    return { available: false, type: 'disabled', runtime };
   }
   if (webgpuProvider) {
-    return { available: true, type: webgpuProvider.type };
+    return { available: true, type: webgpuProvider.type, runtime };
   }
   if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
-    return { available: true, type: 'browser' };
+    return { available: true, type: 'browser', runtime };
   }
-  return { available: false, type: 'none' };
+  return { available: false, type: 'none', runtime };
 }
 
 /**
