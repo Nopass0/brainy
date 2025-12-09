@@ -6,11 +6,11 @@
 import {
   createDevice,
   DeviceType,
-  isWebGPUSupported,
+  isWebGPUSupportedAsync,
   getDevice,
   createGPUBackend,
   isGPUBackendAvailable,
-  getWebGPUProviderInfo,
+  getWebGPUProviderInfoAsync,
   tensor,
   Tensor,
 } from '../src';
@@ -20,9 +20,9 @@ async function main() {
   console.log('GPU TEST');
   console.log('='.repeat(60));
 
-  // Check runtime and WebGPU support
+  // Check runtime and WebGPU support (use async version for Bun!)
   console.log('\n1. Checking environment...');
-  const providerInfo = getWebGPUProviderInfo();
+  const providerInfo = await getWebGPUProviderInfoAsync();
   console.log(`   Runtime: ${providerInfo.runtime}`);
   console.log(`   WebGPU provider: ${providerInfo.type}`);
   console.log(`   WebGPU available: ${providerInfo.available}`);
