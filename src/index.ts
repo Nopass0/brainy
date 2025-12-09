@@ -204,7 +204,9 @@ export {
   createDevice,
   getDevice,
   isWebGPUSupported,
+  isWebGPUSupportedAsync,
   getWebGPUProviderInfo,
+  getWebGPUProviderInfoAsync,
   getCPUCores,
 } from './compute/device';
 export type { DeviceConfig, GPUInfo, CPUInfo, PerformanceStats } from './compute/device';

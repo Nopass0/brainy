@@ -22,12 +22,12 @@ interface WebGPUProvider {
 // WebGPU provider - initialized lazily to avoid loading native modules at parse time
 let webgpuProvider: WebGPUProvider | null = null;
 let webgpuInitialized = false;
+let webgpuInitPromise: Promise<void> | null = null;
 
 /**
- * Lazily initialize WebGPU provider
- * Uses dynamic require to prevent Bun from statically analyzing and pre-loading modules
+ * Lazily initialize WebGPU provider (async for bun-webgpu)
  */
-function initWebGPUProvider(): void {
+async function initWebGPUProviderAsync(): Promise<void> {
   if (webgpuInitialized) return;
   webgpuInitialized = true;
 
@@ -36,9 +36,8 @@ function initWebGPUProvider(): void {
   if (IS_BUN) {
     // Bun runtime - ONLY use bun-webgpu, never try dawn (it crashes Bun)
     try {
-      // Use dynamic require to prevent static analysis
-      const moduleName = 'bun-webgpu';
-      const bunWebGPU = require(moduleName);
+      // Use dynamic import for async module
+      const bunWebGPU = await import('bun-webgpu');
       // bun-webgpu uses setupGlobals() to set navigator.gpu
       if (bunWebGPU && bunWebGPU.setupGlobals) {
         bunWebGPU.setupGlobals();
@@ -53,9 +52,8 @@ function initWebGPUProvider(): void {
   } else if (IS_NODE) {
     // Node.js runtime - use webgpu (dawn)
     try {
-      // Use dynamic require to prevent static analysis
-      const moduleName = 'webgpu';
-      const nodeWebGPU = require(moduleName);
+      // Use dynamic import
+      const nodeWebGPU = await import('webgpu');
       if (nodeWebGPU && nodeWebGPU.create) {
         // Apply globals
         if (nodeWebGPU.globals) {
@@ -69,6 +67,26 @@ function initWebGPUProvider(): void {
     }
   }
   // Browser - will use navigator.gpu in initGPU()
+}
+
+/**
+ * Get or create the init promise (singleton pattern)
+ */
+function getInitPromise(): Promise<void> {
+  if (!webgpuInitPromise) {
+    webgpuInitPromise = initWebGPUProviderAsync();
+  }
+  return webgpuInitPromise;
+}
+
+/**
+ * Synchronous check - only checks if already initialized
+ */
+function initWebGPUProvider(): void {
+  // Start async init in background if not started
+  if (!webgpuInitPromise && !webgpuInitialized) {
+    webgpuInitPromise = initWebGPUProviderAsync();
+  }
 }
 
 /**
@@ -206,8 +224,8 @@ export class DeviceManager {
     let gpu: GPU | null = null;
     let providerName = 'unknown';
 
-    // Initialize provider lazily
-    initWebGPUProvider();
+    // Wait for async provider initialization
+    await getInitPromise();
 
     // Use pre-initialized provider if available
     if (webgpuProvider) {
@@ -429,15 +447,35 @@ export function getDevice(): DeviceManager {
 }
 
 /**
- * Проверяет поддержку WebGPU (Bun, Node.js, or browser)
+ * Проверяет поддержку WebGPU (Bun, Node.js, or browser) - sync version
+ * Note: May return false before async init completes. Use isWebGPUSupportedAsync for accurate result.
  */
 export function isWebGPUSupported(): boolean {
   // Check if GPU is disabled
   if (DISABLE_GPU) {
     return false;
   }
-  // Initialize provider lazily
+  // Start async init in background
   initWebGPUProvider();
+  // Check if we have a WebGPU provider (may not be ready yet)
+  if (webgpuProvider) {
+    return true;
+  }
+  // Check browser WebGPU
+  return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
+
+/**
+ * Проверяет поддержку WebGPU (Bun, Node.js, or browser) - async version
+ * Waits for async module loading to complete.
+ */
+export async function isWebGPUSupportedAsync(): Promise<boolean> {
+  // Check if GPU is disabled
+  if (DISABLE_GPU) {
+    return false;
+  }
+  // Wait for async init
+  await getInitPromise();
   // Check if we have a WebGPU provider
   if (webgpuProvider) {
     return true;
@@ -447,7 +485,8 @@ export function isWebGPUSupported(): boolean {
 }
 
 /**
- * Получает информацию о WebGPU провайдере
+ * Получает информацию о WebGPU провайдере - sync version
+ * Note: May return 'none' before async init completes. Use getWebGPUProviderInfoAsync for accurate result.
  */
 export function getWebGPUProviderInfo(): { available: boolean; type: string; runtime: string } {
   const runtime = IS_BUN ? 'bun' : IS_NODE ? 'node' : 'browser';
@@ -455,8 +494,29 @@ export function getWebGPUProviderInfo(): { available: boolean; type: string; run
   if (DISABLE_GPU) {
     return { available: false, type: 'disabled', runtime };
   }
-  // Initialize provider lazily
+  // Start async init in background
   initWebGPUProvider();
+  if (webgpuProvider) {
+    return { available: true, type: webgpuProvider.type, runtime };
+  }
+  if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
+    return { available: true, type: 'browser', runtime };
+  }
+  return { available: false, type: 'none', runtime };
+}
+
+/**
+ * Получает информацию о WebGPU провайдере - async version
+ * Waits for async module loading to complete.
+ */
+export async function getWebGPUProviderInfoAsync(): Promise<{ available: boolean; type: string; runtime: string }> {
+  const runtime = IS_BUN ? 'bun' : IS_NODE ? 'node' : 'browser';
+
+  if (DISABLE_GPU) {
+    return { available: false, type: 'disabled', runtime };
+  }
+  // Wait for async init
+  await getInitPromise();
   if (webgpuProvider) {
     return { available: true, type: webgpuProvider.type, runtime };
   }
