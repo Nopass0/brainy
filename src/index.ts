@@ -1,8 +1,57 @@
 /**
- * @fileoverview Brainy - Быстрый AI/ML фреймворк для Bun
- * @description Главный экспорт всех модулей фреймворка
+ * @fileoverview Brainy ML - Fast AI/ML Framework for TypeScript
+ * @description Main export file for the Brainy ML framework. Provides PyTorch-like API
+ * with automatic differentiation, GPU support, and pre-built models.
+ *
  * @author Brainy Team
  * @license MIT
+ * @version 2.1.0
+ *
+ * @example Basic tensor operations
+ * ```typescript
+ * import { tensor, zeros, ones } from 'brainy-ml';
+ *
+ * const a = tensor([[1, 2], [3, 4]]);
+ * const b = zeros([2, 2]);
+ * const c = a.add(b).mul(2);
+ * console.log(c.toArray()); // [[2, 4], [6, 8]]
+ * ```
+ *
+ * @example Training a neural network
+ * ```typescript
+ * import { Sequential, Linear, ReLU, MSELoss, Adam, randn } from 'brainy-ml';
+ *
+ * const model = new Sequential(
+ *   new Linear(10, 64),
+ *   new ReLU(),
+ *   new Linear(64, 1)
+ * );
+ *
+ * const optimizer = new Adam(model.parameters(), 0.001);
+ * const criterion = new MSELoss();
+ *
+ * // Training loop
+ * for (let epoch = 0; epoch < 100; epoch++) {
+ *   const x = randn([32, 10]);
+ *   const y = randn([32, 1]);
+ *
+ *   const pred = model.forward(x);
+ *   const loss = criterion.forward(pred, y);
+ *
+ *   optimizer.zeroGrad();
+ *   loss.backward();
+ *   optimizer.step();
+ * }
+ * ```
+ *
+ * @example Loading models from Hugging Face
+ * ```typescript
+ * import { HuggingFaceHub } from 'brainy-ml';
+ *
+ * const hub = new HuggingFaceHub();
+ * const weights = await hub.downloadWeights('Qwen/Qwen2.5-0.5B');
+ * console.log('Loaded', weights.size, 'tensors');
+ * ```
  */
 
 // ============================================

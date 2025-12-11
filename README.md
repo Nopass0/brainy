@@ -1,225 +1,708 @@
-# 🧠 Brainy
+# Brainy ML
 
-**Быстрый AI/ML фреймворк для Bun (TypeScript) с поддержкой GPU/CPU**
+> Быстрый AI/ML фреймворк для Bun/Node.js с поддержкой GPU/CPU, автодифференцированием и PyTorch-подобным API
 
-Brainy — это полнофункциональный фреймворк для глубокого обучения, вдохновлённый PyTorch, написанный на чистом TypeScript для Bun runtime.
+[![npm version](https://img.shields.io/npm/v/brainy-ml.svg)](https://www.npmjs.com/package/brainy-ml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 
-## ✨ Возможности
+[English Documentation](README_EN.md) | [Документация на сайте](https://nopass0.github.io/brainy)
 
-- **Тензорные операции** — многомерные массивы с broadcasting
-- **Автоматическое дифференцирование** — полноценный autograd
-- **Нейросетевые слои** — Linear, Conv2d, LSTM, Embedding, BatchNorm, LayerNorm, Dropout
-- **Активации** — ReLU, GELU, Sigmoid, Softmax, Tanh, SiLU, и другие
-- **Функции потерь** — MSE, CrossEntropy, BCE, NLL, Hinge, KLDiv
-- **Оптимизаторы** — SGD, Adam, AdamW, RMSprop, Adagrad
-- **LR Schedulers** — StepLR, CosineAnnealing, ReduceLROnPlateau
-- **Data utilities** — Dataset, DataLoader, train/test split
-- **Сериализация** — сохранение и загрузка моделей
+## Возможности
 
-## 📦 Установка
+- **PyTorch-подобный API** — знакомый интерфейс для пользователей PyTorch
+- **Автоматическое дифференцирование** — полный autograd с backward() для любого вычислительного графа
+- **Поддержка GPU** — WebGPU ускорение для максимальной производительности
+- **Готовые модели** — GPT, Transformers, VAE, TRM и другие
+- **Интеграция с Hugging Face** — загрузка моделей напрямую из HF Hub
+- **Reinforcement Learning** — DQN, Policy Gradient, Actor-Critic агенты
+- **Квантизация и Fine-tuning** — LoRA, Adapters, QAT
+- **Типобезопасность** — полная поддержка TypeScript с исчерпывающими определениями типов
+- **Лёгкий вес** — без тяжёлых зависимостей, работает в Bun и Node.js
 
-```bash
-# Клонируйте репозиторий
-git clone <repo-url>
-cd brainy
-
-# Установите зависимости
-bun install
-```
-
-## 🚀 Быстрый старт
-
-```typescript
-import { tensor, Linear, MSELoss, SGD } from './src';
-
-// Создание тензора
-const x = tensor([[1, 2, 3], [4, 5, 6]]);
-console.log(x.shape); // [2, 3]
-
-// Математические операции
-const y = x.mul(2).add(1);
-console.log(y.toArray()); // [[3, 5, 7], [9, 11, 13]]
-
-// Нейронная сеть
-const model = new Linear(10, 5);
-const criterion = new MSELoss();
-const optimizer = new SGD(model.parameters(), 0.01);
-
-// Обучение
-const input = tensor([...Array(10)].map(() => Math.random()));
-const target = tensor([...Array(5)].map(() => Math.random()));
-
-for (let i = 0; i < 100; i++) {
-  const output = model.forward(input);
-  const loss = criterion.forward(output, target);
-  
-  optimizer.zeroGrad();
-  loss.backward();
-  optimizer.step();
-}
-```
-
-## 📚 Примеры
+## Установка
 
 ```bash
-# Базовые операции с тензорами
-bun run examples/01-basic-tensors.ts
+# Используя Bun (рекомендуется)
+bun add brainy-ml
 
-# Автоматическое дифференцирование
-bun run examples/02-autograd.ts
+# Используя npm
+npm install brainy-ml
 
-# Линейная регрессия
-bun run examples/03-linear-regression.ts
-
-# XOR нейросеть
-bun run examples/04-xor-neural-network.ts
-
-# MNIST классификация (CNN)
-bun run examples/05-mnist-classification.ts
-
-# Кастомные слои (Attention, ResNet)
-bun run examples/06-custom-layer.ts
+# Используя yarn
+yarn add brainy-ml
 ```
 
-## 🏗️ API Reference
+## Быстрый старт
 
-### Тензоры
+### Базовые операции с тензорами
 
 ```typescript
-// Создание
-tensor([[1, 2], [3, 4]])      // Из массива
-zeros([2, 3])                  // Нули
-ones([2, 3])                   // Единицы
-rand([2, 3])                   // Случайные [0, 1)
-randn([2, 3])                  // Нормальное распределение
-eye(3)                         // Единичная матрица
-linspace(0, 10, 5)             // Линейное распределение
-arange(0, 10, 2)               // Диапазон
+import { tensor, zeros, ones, randn, eye, linspace, arange } from 'brainy-ml';
+
+// Создание тензоров
+const a = tensor([[1, 2], [3, 4]]);
+const b = zeros([2, 2]);
+const c = randn([3, 3]);
+const identity = eye(3);
+const range = linspace(0, 10, 5);  // [0, 2.5, 5, 7.5, 10]
 
 // Операции
-t.add(other)                   // Сложение
-t.sub(other)                   // Вычитание
-t.mul(other)                   // Умножение (поэлементное)
-t.div(other)                   // Деление
-t.matmul(other)                // Матричное умножение
-t.pow(2)                       // Степень
-t.exp()                        // Экспонента
-t.log()                        // Логарифм
+const sum = a.add(b);
+const product = a.matmul(a.T);  // Матричное умножение
+const mean = c.mean();
 
-// Reshape
-t.reshape(3, 4)                // Изменение формы
-t.flatten()                    // Выравнивание
-t.transpose(0, 1)              // Транспонирование
-t.squeeze()                    // Удаление размерностей=1
-t.unsqueeze(0)                 // Добавление размерности
-
-// Редукции
-t.sum()                        // Сумма
-t.mean()                       // Среднее
-t.max()                        // Максимум
-t.min()                        // Минимум
-t.argmax()                     // Индекс максимума
+console.log('Форма:', sum.shape);      // [2, 2]
+console.log('Произведение:', product.toArray());
+console.log('Среднее:', mean.item());
 ```
 
-### Нейронные сети
+### Автоматическое дифференцирование
 
 ```typescript
-import { Sequential, Linear, ReLU, Conv2d, Dropout } from './src';
+import { tensor, noGrad } from 'brainy-ml';
 
+// Создаём тензор с отслеживанием градиентов
+const x = tensor([[2.0]], { requiresGrad: true });
+
+// y = x^2 + 3x + 1
+const y = x.pow(2).add(x.mul(3)).add(1);
+
+// Вычисляем градиенты
+y.backward();
+
+// dy/dx = 2x + 3 = 2*2 + 3 = 7
+console.log('x:', x.item());           // 2
+console.log('y:', y.item());           // 11
+console.log('dy/dx:', x.grad.item());  // 7
+
+// Отключение градиентов для инференса
+noGrad(() => {
+  const result = x.mul(2);  // Без отслеживания градиентов
+});
+```
+
+### Построение нейронных сетей
+
+```typescript
+import {
+  Sequential, Linear, ReLU, Sigmoid, Dropout, BatchNorm1d,
+  MSELoss, Adam, tensor
+} from 'brainy-ml';
+
+// Создаём модель
 const model = new Sequential(
-  new Linear(784, 256),
+  new Linear(10, 64),
+  new BatchNorm1d(64),
   new ReLU(),
-  new Dropout(0.5),
-  new Linear(256, 10)
+  new Dropout(0.2),
+  new Linear(64, 32),
+  new ReLU(),
+  new Linear(32, 1),
+  new Sigmoid()
 );
 
-const output = model.forward(input);
+// Настраиваем обучение
+const optimizer = new Adam(model.parameters(), 0.001);
+const criterion = new MSELoss();
+
+// Цикл обучения
+for (let epoch = 0; epoch < 100; epoch++) {
+  const x = tensor([[/* ваши данные */]]);
+  const y = tensor([[/* ваши метки */]]);
+
+  const pred = model.forward(x);
+  const loss = criterion.forward(pred, y);
+
+  optimizer.zeroGrad();
+  loss.backward();
+  optimizer.step();
+
+  if (epoch % 10 === 0) {
+    console.log(`Эпоха ${epoch}, Loss: ${loss.item()}`);
+  }
+}
+
+// Переключение режимов train/eval
+model.train();  // Включает Dropout, BatchNorm в режиме обучения
+model.eval();   // Отключает Dropout, BatchNorm в режиме инференса
 ```
 
-### Обучение
+### Пример: задача XOR
 
 ```typescript
-import { CrossEntropyLoss, Adam } from './src';
+import {
+  Sequential, Linear, ReLU, Sigmoid,
+  MSELoss, Adam, tensor
+} from 'brainy-ml';
 
-const criterion = new CrossEntropyLoss();
-const optimizer = new Adam(model.parameters(), 0.001);
+// Данные XOR
+const X = tensor([[0,0], [0,1], [1,0], [1,1]]);
+const Y = tensor([[0], [1], [1], [0]]);
 
-for (const batch of dataLoader) {
-  const output = model.forward(batch.input);
-  const loss = criterion.forward(output, batch.target);
-  
+// Простая сеть
+const model = new Sequential(
+  new Linear(2, 8),
+  new ReLU(),
+  new Linear(8, 1),
+  new Sigmoid()
+);
+
+const optimizer = new Adam(model.parameters(), 0.1);
+const criterion = new MSELoss();
+
+// Обучение
+for (let i = 0; i < 1000; i++) {
+  const pred = model.forward(X);
+  const loss = criterion.forward(pred, Y);
+
   optimizer.zeroGrad();
   loss.backward();
   optimizer.step();
 }
+
+// Тест
+console.log('Предсказания:', model.forward(X).toArray());
+// Ожидается: [[~0], [~1], [~1], [~0]]
 ```
 
-### Кастомные слои
+### Трансформеры
 
 ```typescript
-import { Module, Parameter, Linear, Tensor } from './src';
+import {
+  TransformerEncoder, TransformerDecoder,
+  MultiHeadAttention, PositionalEncoding, RotaryEmbedding,
+  createCausalMask, tensor
+} from 'brainy-ml';
 
-class MyLayer extends Module {
-  weight: Parameter;
-  linear: Linear;
+// Multi-Head Attention
+const mha = new MultiHeadAttention(512, 8);  // d_model=512, heads=8
+const query = tensor(/* [batch, seq, 512] */);
+const key = tensor(/* [batch, seq, 512] */);
+const value = tensor(/* [batch, seq, 512] */);
+const output = mha.forward(query, key, value);
 
-  constructor(inFeatures: number, outFeatures: number) {
-    super();
-    this.weight = new Parameter(randn([inFeatures]), 'weight');
-    this.linear = new Linear(inFeatures, outFeatures);
-    
-    this.registerParameter('weight', this.weight);
-    this.registerModule('linear', this.linear);
+// Позиционное кодирование
+const posEnc = new PositionalEncoding(512, 1000);  // d_model, max_len
+const withPos = posEnc.forward(tensor(/* [batch, seq, 512] */));
+
+// Rotary Embeddings (RoPE)
+const rope = new RotaryEmbedding(64);  // head_dim
+const rotated = rope.forward(query, 0);  // с offset позиции
+
+// Causal mask для авторегрессии
+const mask = createCausalMask(100);  // [100, 100] маска
+
+// Полный Transformer Encoder
+const encoder = new TransformerEncoder({
+  d_model: 512,
+  nhead: 8,
+  num_layers: 6,
+  dim_feedforward: 2048,
+  dropout: 0.1
+});
+
+const encoded = encoder.forward(tensor(/* input */));
+```
+
+### Загрузка моделей из Hugging Face
+
+```typescript
+import { HuggingFaceHub, loadWeightsIntoModel } from 'brainy-ml';
+
+const hub = new HuggingFaceHub();
+
+// Получаем информацию о модели
+const info = await hub.getModelInfo('Qwen/Qwen2.5-0.5B');
+console.log('Модель:', info.id);
+
+// Список файлов в репозитории
+const files = await hub.listFiles('Qwen/Qwen2.5-0.5B');
+console.log('Файлы:', files);
+
+// Скачиваем конфигурацию
+const config = await hub.downloadConfig('Qwen/Qwen2.5-0.5B');
+console.log('Hidden size:', config.hidden_size);
+
+// Скачиваем токенизатор
+const tokenizer = await hub.downloadTokenizer('Qwen/Qwen2.5-0.5B');
+
+// Скачиваем веса (формат safetensors)
+const weights = await hub.downloadWeights('Qwen/Qwen2.5-0.5B');
+console.log('Загружено', weights.size, 'тензоров');
+
+// Загрузка весов в модель
+const result = loadWeightsIntoModel(model, weights);
+console.log('Загружено:', result.loaded);
+console.log('Пропущено:', result.missing);
+```
+
+### Работа с данными
+
+```typescript
+import {
+  DataLoader, TensorDataset, ArrayDataset,
+  trainTestSplit, StreamingDataset, loadJson, loadCsv
+} from 'brainy-ml';
+
+// Создание датасета из тензоров
+const X = tensor([[1,2], [3,4], [5,6], [7,8]]);
+const Y = tensor([[0], [1], [0], [1]]);
+const dataset = new TensorDataset(X, Y);
+
+// DataLoader для батчей
+const loader = new DataLoader(dataset, {
+  batchSize: 2,
+  shuffle: true
+});
+
+for (const batch of loader) {
+  const [inputs, targets] = batch;
+  console.log('Batch shape:', inputs.shape);
+}
+
+// Разделение на train/test
+const [trainData, testData] = trainTestSplit(dataset, 0.8);
+
+// Загрузка данных из файлов
+const jsonData = await loadJson('data.json');
+const csvData = await loadCsv('data.csv');
+
+// Streaming для больших данных
+const stream = new StreamingDataset('large_data.jsonl', {
+  batchSize: 32
+});
+```
+
+### Токенизация текста
+
+```typescript
+import {
+  BPETokenizer, WordPieceTokenizer, CharTokenizer,
+  loadTokenizer
+} from 'brainy-ml';
+
+// BPE Tokenizer
+const bpe = new BPETokenizer();
+await bpe.train(['Hello world', 'How are you?'], { vocabSize: 1000 });
+const encoded = bpe.encode('Hello world');
+const decoded = bpe.decode(encoded.ids);
+
+// WordPiece Tokenizer
+const wp = new WordPieceTokenizer();
+const tokens = wp.encode('Running quickly');
+
+// Загрузка токенизатора из HuggingFace
+const tokenizer = await loadTokenizer('bert-base-uncased');
+```
+
+### Reinforcement Learning
+
+```typescript
+import {
+  DQNAgent, PolicyGradientAgent, ActorCriticAgent,
+  ReplayBuffer, CartPoleEnv, trainDQN
+} from 'brainy-ml';
+
+// DQN Agent
+const agent = new DQNAgent({
+  stateSize: 4,
+  actionSize: 2,
+  hiddenSize: 64,
+  learningRate: 0.001,
+  gamma: 0.99,
+  epsilon: 1.0,
+  epsilonDecay: 0.995,
+  epsilonMin: 0.01
+});
+
+// Окружение CartPole
+const env = new CartPoleEnv();
+
+// Обучение
+for (let episode = 0; episode < 500; episode++) {
+  let state = env.reset();
+  let totalReward = 0;
+
+  while (true) {
+    const action = agent.act(state);
+    const { nextState, reward, done } = env.step(action);
+    agent.remember(state, action, reward, nextState, done);
+    agent.replay(32);  // batch size
+
+    state = nextState;
+    totalReward += reward;
+    if (done) break;
   }
 
-  forward(x: Tensor): Tensor {
-    return this.linear.forward(x.mul(this.weight.data));
-  }
+  console.log(`Episode ${episode}: ${totalReward}`);
 }
 ```
 
-## 📂 Структура проекта
+### Fine-tuning с LoRA
 
+```typescript
+import {
+  createLoRAModel, LoRALayer, AdapterLayer,
+  FineTuneTrainer, fineTune
+} from 'brainy-ml';
+
+// Создание LoRA модели
+const loraModel = createLoRAModel(baseModel, {
+  rank: 8,
+  alpha: 16,
+  targetModules: ['query', 'value']
+});
+
+// Fine-tuning
+const trainer = new FineTuneTrainer(loraModel, {
+  learningRate: 1e-4,
+  epochs: 3,
+  warmupSteps: 100
+});
+
+await trainer.train(trainDataset, valDataset);
+
+// Или быстрый fine-tune
+await fineTune(model, dataset, {
+  strategy: 'lora',
+  rank: 4
+});
 ```
-brainy/
-├── src/
-│   ├── core/           # Тензоры и autograd
-│   │   ├── tensor.ts
-│   │   ├── autograd.ts
-│   │   ├── dtype.ts
-│   │   └── shape.ts
-│   ├── nn/             # Нейросетевые модули
-│   │   ├── module.ts
-│   │   ├── layers.ts
-│   │   ├── activations.ts
-│   │   ├── loss.ts
-│   │   └── init.ts
-│   ├── optim/          # Оптимизаторы
-│   │   └── optimizer.ts
-│   ├── data/           # Data utilities
-│   │   └── dataloader.ts
-│   ├── functional/     # Функциональный API
-│   │   └── functional.ts
-│   ├── utils/          # Утилиты
-│   │   ├── serialize.ts
-│   │   └── random.ts
-│   └── index.ts        # Главный экспорт
-├── examples/           # Примеры использования
-└── package.json
+
+### Квантизация
+
+```typescript
+import {
+  Quantizer, dynamicQuantize, prepareQAT, convertQAT,
+  QuantizationMode, getModelSize
+} from 'brainy-ml';
+
+// Динамическая квантизация
+const quantizedModel = dynamicQuantize(model, {
+  bits: 8,
+  mode: QuantizationMode.DYNAMIC
+});
+
+// QAT (Quantization-Aware Training)
+const qatModel = prepareQAT(model);
+// ... обучение ...
+const finalModel = convertQAT(qatModel);
+
+// Проверка размера модели
+const sizeBefore = getModelSize(model);
+const sizeAfter = getModelSize(quantizedModel);
+console.log(`Сжатие: ${sizeBefore / sizeAfter}x`);
 ```
 
-## 🔧 Сравнение с PyTorch
+### Визуализация моделей
 
-| PyTorch | Brainy |
-|---------|--------|
-| `torch.tensor([1, 2, 3])` | `tensor([1, 2, 3])` |
-| `torch.zeros(2, 3)` | `zeros([2, 3])` |
-| `x @ y` | `x.matmul(y)` |
-| `nn.Linear(10, 5)` | `new Linear(10, 5)` |
-| `nn.Sequential(...)` | `new Sequential(...)` |
-| `optim.Adam(...)` | `new Adam(...)` |
-| `loss.backward()` | `loss.backward()` |
+```typescript
+import { visualize, summary, printModel } from 'brainy-ml';
 
-## 📄 Лицензия
+// ASCII визуализация архитектуры
+visualize(model);
 
-MIT License
+// Детальная сводка
+summary(model, [1, 10]);  // input shape
+
+// Печать параметров
+printModel(model);
+```
+
+### Сохранение и загрузка
+
+```typescript
+import {
+  saveModel, loadModel, saveStateDict, loadStateDict,
+  saveCheckpoint, loadCheckpoint, exportModel
+} from 'brainy-ml';
+
+// Простое сохранение/загрузка
+await saveModel(model, 'model.bin');
+await loadModel(model, 'model.bin');
+
+// State dict
+const state = model.stateDict();
+await saveStateDict(state, 'weights.bin');
+const loadedState = await loadStateDict('weights.bin');
+model.loadStateDict(loadedState);
+
+// Чекпоинты с метаданными
+await saveCheckpoint({
+  model: model.stateDict(),
+  optimizer: optimizer.stateDict(),
+  epoch: 10,
+  loss: 0.05
+}, 'checkpoint.bin');
+
+const checkpoint = await loadCheckpoint('checkpoint.bin');
+model.loadStateDict(checkpoint.model);
+optimizer.loadStateDict(checkpoint.optimizer);
+
+// Экспорт для инференса
+await exportModel(model, 'model_inference.bin', {
+  compress: true
+});
+```
+
+## Справочник API
+
+### Создание тензоров
+
+| Функция | Описание |
+|---------|----------|
+| `tensor(data, options?)` | Создать тензор из массива |
+| `scalar(value, options?)` | Скалярный тензор |
+| `zeros(shape, options?)` | Тензор из нулей |
+| `ones(shape, options?)` | Тензор из единиц |
+| `full(shape, value, options?)` | Тензор заполненный value |
+| `rand(shape, options?)` | Равномерное распределение [0, 1) |
+| `randn(shape, mean?, std?, options?)` | Нормальное распределение |
+| `eye(n, options?)` | Единичная матрица |
+| `linspace(start, end, steps, options?)` | Равномерно распределённые значения |
+| `arange(start, end?, step?, options?)` | Диапазон значений |
+| `cat(tensors, dim?)` | Конкатенация тензоров |
+| `stack(tensors, dim?)` | Стек тензоров |
+
+### Операции с тензорами
+
+| Метод | Описание |
+|-------|----------|
+| `.add(other)` | Поэлементное сложение |
+| `.sub(other)` | Поэлементное вычитание |
+| `.mul(other)` | Поэлементное умножение |
+| `.div(other)` | Поэлементное деление |
+| `.matmul(other)` | Матричное умножение |
+| `.pow(exp)` | Возведение в степень |
+| `.sqrt()` | Квадратный корень |
+| `.exp()` | Экспонента |
+| `.log()` | Натуральный логарифм |
+| `.abs()` | Абсолютное значение |
+| `.neg()` | Отрицание |
+| `.sin()`, `.cos()`, `.tan()` | Тригонометрия |
+| `.sum(dim?, keepdim?)` | Сумма |
+| `.mean(dim?, keepdim?)` | Среднее |
+| `.max(dim?, keepdim?)` | Максимум |
+| `.min(dim?, keepdim?)` | Минимум |
+| `.argmax(dim?)` | Индекс максимума |
+| `.argmin(dim?)` | Индекс минимума |
+| `.reshape(...shape)` | Изменить форму |
+| `.view(...shape)` | Изменить форму (view) |
+| `.transpose(dim0, dim1)` | Поменять измерения местами |
+| `.permute(...dims)` | Переставить измерения |
+| `.squeeze(dim?)` | Удалить размерность 1 |
+| `.unsqueeze(dim)` | Добавить размерность |
+| `.T` | Сокращение для transpose(0, 1) |
+| `.backward()` | Вычислить градиенты |
+| `.detach()` | Отсоединить от графа градиентов |
+| `.clone()` | Глубокая копия |
+
+### Слои нейронных сетей
+
+| Класс | Описание |
+|-------|----------|
+| `Linear(in, out, bias?)` | Полносвязный слой |
+| `Conv2d(in, out, kernel, stride?, padding?)` | 2D свёртка |
+| `MaxPool2d(kernel, stride?, padding?)` | Макс пулинг |
+| `AvgPool2d(kernel, stride?, padding?)` | Средний пулинг |
+| `BatchNorm1d(features)` | Batch нормализация 1D |
+| `BatchNorm2d(features)` | Batch нормализация 2D |
+| `LayerNorm(shape)` | Layer нормализация |
+| `Dropout(p)` | Dropout регуляризация |
+| `Embedding(num, dim)` | Слой Embedding |
+| `Flatten(startDim?, endDim?)` | Выравнивание |
+
+### Активации
+
+| Класс | Описание |
+|-------|----------|
+| `ReLU()` | Rectified Linear Unit |
+| `LeakyReLU(slope?)` | Leaky ReLU |
+| `ELU(alpha?)` | Exponential Linear Unit |
+| `SELU()` | Scaled ELU |
+| `PReLU(numParams?)` | Parametric ReLU |
+| `GELU()` | Gaussian Error Linear Unit |
+| `SiLU()` / `Swish()` | Sigmoid Linear Unit |
+| `Mish()` | Mish activation |
+| `Hardswish()` | Hard Swish |
+| `Sigmoid()` | Сигмоида |
+| `Tanh()` | Гиперболический тангенс |
+| `Softmax(dim)` | Softmax |
+| `LogSoftmax(dim)` | Log softmax |
+
+### Функции потерь
+
+| Класс | Описание |
+|-------|----------|
+| `MSELoss()` | Среднеквадратичная ошибка |
+| `L1Loss()` | Средняя абсолютная ошибка |
+| `SmoothL1Loss(beta?)` | Smooth L1 (Huber Loss) |
+| `CrossEntropyLoss()` | Кросс-энтропия для классификации |
+| `BCELoss()` | Бинарная кросс-энтропия |
+| `BCEWithLogitsLoss()` | BCE с сигмоидой |
+| `NLLLoss()` | Negative log likelihood |
+| `HingeLoss()` | Hinge loss для SVM |
+| `KLDivLoss()` | KL дивергенция |
+| `CosineEmbeddingLoss()` | Cosine embedding loss |
+
+### Оптимизаторы
+
+| Класс | Описание |
+|-------|----------|
+| `SGD(params, lr, momentum?, weightDecay?)` | Стохастический градиентный спуск |
+| `Adam(params, lr, betas?, eps?)` | Adam оптимизатор |
+| `AdamW(params, lr, betas?, weightDecay?)` | Adam с weight decay |
+| `RMSprop(params, lr, alpha?, eps?)` | RMSprop оптимизатор |
+| `Adagrad(params, lr, eps?)` | Adagrad оптимизатор |
+
+### Планировщики скорости обучения
+
+| Класс | Описание |
+|-------|----------|
+| `StepLR(optimizer, stepSize, gamma?)` | Ступенчатое уменьшение |
+| `ExponentialLR(optimizer, gamma)` | Экспоненциальное уменьшение |
+| `CosineAnnealingLR(optimizer, tMax, etaMin?)` | Косинусный отжиг |
+| `ReduceLROnPlateau(optimizer, mode?, factor?, patience?)` | Уменьшение на плато |
+
+### Инициализация весов
+
+| Функция | Описание |
+|---------|----------|
+| `xavierUniform(tensor, gain?)` | Xavier uniform |
+| `xavierNormal(tensor, gain?)` | Xavier normal |
+| `kaimingUniform(tensor, a?, mode?)` | Kaiming uniform |
+| `kaimingNormal(tensor, a?, mode?)` | Kaiming normal |
+| `uniform(tensor, a, b)` | Равномерное распределение |
+| `normal(tensor, mean, std)` | Нормальное распределение |
+| `constant(tensor, value)` | Константа |
+| `zeros_(tensor)` | Заполнить нулями |
+| `ones_(tensor)` | Заполнить единицами |
+| `orthogonal(tensor, gain?)` | Ортогональная инициализация |
+
+### Трансформеры
+
+| Класс | Описание |
+|-------|----------|
+| `MultiHeadAttention(d_model, nhead)` | Multi-head attention |
+| `ScaledDotProductAttention()` | Scaled dot-product attention |
+| `FeedForward(d_model, dim_ff)` | Feed-forward сеть |
+| `TransformerEncoderBlock(config)` | Блок encoder |
+| `TransformerDecoderBlock(config)` | Блок decoder |
+| `TransformerEncoder(config)` | Полный encoder |
+| `TransformerDecoder(config)` | Полный decoder |
+| `PositionalEncoding(d_model, max_len)` | Синусоидальное позиционное кодирование |
+| `LearnedPositionalEmbedding(max_len, d)` | Обучаемые позиции |
+| `RotaryEmbedding(dim)` | Rotary Position Embedding (RoPE) |
+| `createCausalMask(size)` | Causal mask для авторегрессии |
+| `createPaddingMask(lengths, max_len)` | Padding mask |
+
+### Готовые модели
+
+| Класс | Описание |
+|-------|----------|
+| `GPT(config)` | GPT-style трансформер |
+| `createSmallGPT()` | Маленькая GPT модель |
+| `createMediumGPT()` | Средняя GPT модель |
+| `VAE(config)` | Вариационный автокодировщик |
+| `ConvVAE(config)` | Свёрточный VAE |
+| `createMNISTVAE()` | VAE для MNIST |
+| `TRM(config)` | TRM модель |
+| `TRMv2(config)` | TRM v2 с attention и MoE |
+| `TRMUltra(config)` | TRM Ultra (стабильная) |
+| `TRMFinal(config)` | TRM Final (оптимизированная) |
+| `TRMX(config)` | TRM-X (extreme performance) |
+| `TRMLite(config)` | TRM-Lite (простая) |
+| `TRMPro(config)` | TRM-Pro (98%+ accuracy) |
+| `TRMSupreme(config)` | TRM-Supreme с residual scaling |
+| `MultimodalFewShot(config)` | Мультимодальная модель |
+
+### Утилиты
+
+| Функция/Класс | Описание |
+|---------------|----------|
+| `saveModel(model, path)` | Сохранить модель |
+| `loadModel(model, path)` | Загрузить модель |
+| `saveCheckpoint(data, path)` | Сохранить чекпоинт |
+| `loadCheckpoint(path)` | Загрузить чекпоинт |
+| `HuggingFaceHub` | Интеграция с Hugging Face |
+| `Quantizer` | Квантизация модели |
+| `LoRALayer` | Low-Rank Adaptation |
+| `AdapterLayer` | Adapter layers |
+| `DataLoader` | Загрузка данных батчами |
+| `Tokenizer` | Токенизация текста |
+| `visualize(model)` | Визуализация архитектуры |
+| `summary(model, inputShape)` | Сводка модели |
+| `manualSeed(seed)` | Установить seed для воспроизводимости |
+
+### Вычисления
+
+| Функция/Класс | Описание |
+|---------------|----------|
+| `isWebGPUSupported()` | Проверка поддержки WebGPU |
+| `createDevice(type)` | Создать устройство (cpu/gpu) |
+| `DeviceManager` | Управление устройствами |
+| `GPUBackend` | GPU бэкенд |
+| `WorkerPool` | Пул воркеров для CPU |
+| `HybridEngine` | Гибридный CPU/GPU движок |
+| `asyncOps` | Асинхронные операции |
+
+## Поддержка GPU
+
+Brainy ML поддерживает WebGPU для GPU ускорения:
+
+```typescript
+import { isWebGPUSupported, createDevice, GPUBackend } from 'brainy-ml';
+
+if (await isWebGPUSupported()) {
+  const device = await createDevice('gpu');
+  console.log('GPU включен!');
+
+  // GPU бэкенд для тензорных операций
+  const gpu = await GPUBackend.create();
+  const result = await gpu.matmul(a, b);
+}
+```
+
+## Примеры
+
+Смотрите папку `examples/` для больших примеров:
+
+- `01-basic-tensors.ts` - Операции с тензорами
+- `02-autograd.ts` - Автодифференцирование
+- `03-linear-regression.ts` - Линейная регрессия
+- `04-xor-neural-network.ts` - Задача XOR
+- `05-mnist-classification.ts` - Классификация MNIST
+- `07-text-generation.ts` - Генерация текста с GPT
+- `08-transformer.ts` - Transformer архитектура
+- `09-vae.ts` - Вариационный автокодировщик
+- `10-reinforcement-learning.ts` - DQN агент
+- `26-huggingface-example.ts` - Интеграция с Hugging Face
+- `27-qwen3-example.ts` - Загрузка модели Qwen
+
+## Запуск
+
+```bash
+# Запуск примера
+bun run examples/01-basic-tensors.ts
+
+# Запуск тестов
+bun test
+
+# Запуск конкретного теста
+bun test tests/tensor.test.ts
+```
+
+## Вклад в проект
+
+Вклады приветствуются! Пожалуйста, создавайте Pull Request.
+
+## Лицензия
+
+MIT License - см. файл [LICENSE](LICENSE) для деталей.
+
+## Ссылки
+
+- [Документация](https://nopass0.github.io/brainy)
+- [GitHub репозиторий](https://github.com/Nopass0/brainy)
+- [npm пакет](https://www.npmjs.com/package/brainy-ml)

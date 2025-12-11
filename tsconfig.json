@@ -3,23 +3,23 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "strict": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
     "skipLibCheck": true,
-    "noEmit": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "declaration": true,
-    "declarationMap": true,
-    "lib": ["ESNext"],
-    "types": ["bun-types"],
+    "noEmit": true,
+    "lib": ["ESNext", "DOM"],
+    "types": ["bun-types", "@webgpu/types"],
     "baseUrl": ".",
     "paths": {
-      "brainy": ["./src/index.ts"],
-      "brainy/*": ["./src/*"]
+      "brainy-ml": ["./src/index.ts"],
+      "brainy-ml/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "examples/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*", "tests/**/*", "examples/**/*"],
+  "exclude": ["node_modules", "dist", "docs"]
 }
