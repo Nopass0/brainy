@@ -1,225 +1,320 @@
-# 🧠 Brainy
+# Brainy ML
 
-**Быстрый AI/ML фреймворк для Bun (TypeScript) с поддержкой GPU/CPU**
+> Быстрый AI/ML фреймворк для Bun/Node.js с поддержкой GPU/CPU, автодифференцированием и PyTorch-подобным API
 
-Brainy — это полнофункциональный фреймворк для глубокого обучения, вдохновлённый PyTorch, написанный на чистом TypeScript для Bun runtime.
+[![npm version](https://img.shields.io/npm/v/brainy-ml.svg)](https://www.npmjs.com/package/brainy-ml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 
-## ✨ Возможности
+[English Documentation](README_EN.md) | [Документация на сайте](https://nopass0.github.io/brainy)
 
-- **Тензорные операции** — многомерные массивы с broadcasting
-- **Автоматическое дифференцирование** — полноценный autograd
-- **Нейросетевые слои** — Linear, Conv2d, LSTM, Embedding, BatchNorm, LayerNorm, Dropout
-- **Активации** — ReLU, GELU, Sigmoid, Softmax, Tanh, SiLU, и другие
-- **Функции потерь** — MSE, CrossEntropy, BCE, NLL, Hinge, KLDiv
-- **Оптимизаторы** — SGD, Adam, AdamW, RMSprop, Adagrad
-- **LR Schedulers** — StepLR, CosineAnnealing, ReduceLROnPlateau
-- **Data utilities** — Dataset, DataLoader, train/test split
-- **Сериализация** — сохранение и загрузка моделей
+## Возможности
 
-## 📦 Установка
+- **PyTorch-подобный API** — знакомый интерфейс для пользователей PyTorch
+- **Автоматическое дифференцирование** — полный autograd с backward() для любого вычислительного графа
+- **Поддержка GPU** — WebGPU ускорение для максимальной производительности
+- **Готовые модели** — GPT, Transformers, VAE, TRM и другие
+- **Интеграция с Hugging Face** — загрузка моделей напрямую из HF Hub
+- **Типобезопасность** — полная поддержка TypeScript с исчерпывающими определениями типов
+- **Лёгкий вес** — без тяжёлых зависимостей, работает в Bun и Node.js
 
-```bash
-# Клонируйте репозиторий
-git clone <repo-url>
-cd brainy
-
-# Установите зависимости
-bun install
-```
-
-## 🚀 Быстрый старт
-
-```typescript
-import { tensor, Linear, MSELoss, SGD } from './src';
-
-// Создание тензора
-const x = tensor([[1, 2, 3], [4, 5, 6]]);
-console.log(x.shape); // [2, 3]
-
-// Математические операции
-const y = x.mul(2).add(1);
-console.log(y.toArray()); // [[3, 5, 7], [9, 11, 13]]
-
-// Нейронная сеть
-const model = new Linear(10, 5);
-const criterion = new MSELoss();
-const optimizer = new SGD(model.parameters(), 0.01);
-
-// Обучение
-const input = tensor([...Array(10)].map(() => Math.random()));
-const target = tensor([...Array(5)].map(() => Math.random()));
-
-for (let i = 0; i < 100; i++) {
-  const output = model.forward(input);
-  const loss = criterion.forward(output, target);
-  
-  optimizer.zeroGrad();
-  loss.backward();
-  optimizer.step();
-}
-```
-
-## 📚 Примеры
+## Установка
 
 ```bash
-# Базовые операции с тензорами
-bun run examples/01-basic-tensors.ts
+# Используя Bun (рекомендуется)
+bun add brainy-ml
 
-# Автоматическое дифференцирование
-bun run examples/02-autograd.ts
+# Используя npm
+npm install brainy-ml
 
-# Линейная регрессия
-bun run examples/03-linear-regression.ts
-
-# XOR нейросеть
-bun run examples/04-xor-neural-network.ts
-
-# MNIST классификация (CNN)
-bun run examples/05-mnist-classification.ts
-
-# Кастомные слои (Attention, ResNet)
-bun run examples/06-custom-layer.ts
+# Используя yarn
+yarn add brainy-ml
 ```
 
-## 🏗️ API Reference
+## Быстрый старт
 
-### Тензоры
+### Базовые операции с тензорами
 
 ```typescript
-// Создание
-tensor([[1, 2], [3, 4]])      // Из массива
-zeros([2, 3])                  // Нули
-ones([2, 3])                   // Единицы
-rand([2, 3])                   // Случайные [0, 1)
-randn([2, 3])                  // Нормальное распределение
-eye(3)                         // Единичная матрица
-linspace(0, 10, 5)             // Линейное распределение
-arange(0, 10, 2)               // Диапазон
+import { tensor, zeros, ones, randn } from 'brainy-ml';
+
+// Создание тензоров
+const a = tensor([[1, 2], [3, 4]]);
+const b = zeros([2, 2]);
+const c = randn([3, 3]);
 
 // Операции
-t.add(other)                   // Сложение
-t.sub(other)                   // Вычитание
-t.mul(other)                   // Умножение (поэлементное)
-t.div(other)                   // Деление
-t.matmul(other)                // Матричное умножение
-t.pow(2)                       // Степень
-t.exp()                        // Экспонента
-t.log()                        // Логарифм
+const sum = a.add(b);
+const product = a.matmul(a.T);  // Матричное умножение
+const mean = c.mean();
 
-// Reshape
-t.reshape(3, 4)                // Изменение формы
-t.flatten()                    // Выравнивание
-t.transpose(0, 1)              // Транспонирование
-t.squeeze()                    // Удаление размерностей=1
-t.unsqueeze(0)                 // Добавление размерности
-
-// Редукции
-t.sum()                        // Сумма
-t.mean()                       // Среднее
-t.max()                        // Максимум
-t.min()                        // Минимум
-t.argmax()                     // Индекс максимума
+console.log('Форма:', sum.shape);      // [2, 2]
+console.log('Произведение:', product.toArray());
+console.log('Среднее:', mean.item());
 ```
 
-### Нейронные сети
+### Автоматическое дифференцирование
 
 ```typescript
-import { Sequential, Linear, ReLU, Conv2d, Dropout } from './src';
+import { tensor } from 'brainy-ml';
 
+// Создаём тензор с отслеживанием градиентов
+const x = tensor([[2.0]], { requiresGrad: true });
+
+// y = x^2 + 3x + 1
+const y = x.pow(2).add(x.mul(3)).add(1);
+
+// Вычисляем градиенты
+y.backward();
+
+// dy/dx = 2x + 3 = 2*2 + 3 = 7
+console.log('x:', x.item());           // 2
+console.log('y:', y.item());           // 11
+console.log('dy/dx:', x.grad.item());  // 7
+```
+
+### Построение нейронных сетей
+
+```typescript
+import {
+  Sequential, Linear, ReLU, Sigmoid,
+  MSELoss, Adam, tensor
+} from 'brainy-ml';
+
+// Создаём модель
 const model = new Sequential(
-  new Linear(784, 256),
+  new Linear(10, 64),
   new ReLU(),
-  new Dropout(0.5),
-  new Linear(256, 10)
+  new Linear(64, 32),
+  new ReLU(),
+  new Linear(32, 1),
+  new Sigmoid()
 );
 
-const output = model.forward(input);
+// Настраиваем обучение
+const optimizer = new Adam(model.parameters(), 0.001);
+const criterion = new MSELoss();
+
+// Цикл обучения
+for (let epoch = 0; epoch < 100; epoch++) {
+  const x = tensor([[/* ваши данные */]]);
+  const y = tensor([[/* ваши метки */]]);
+
+  const pred = model.forward(x);
+  const loss = criterion.forward(pred, y);
+
+  optimizer.zeroGrad();
+  loss.backward();
+  optimizer.step();
+
+  if (epoch % 10 === 0) {
+    console.log(`Эпоха ${epoch}, Loss: ${loss.item()}`);
+  }
+}
 ```
 
-### Обучение
+### Пример: задача XOR
 
 ```typescript
-import { CrossEntropyLoss, Adam } from './src';
+import {
+  Sequential, Linear, ReLU, Sigmoid,
+  MSELoss, Adam, tensor
+} from 'brainy-ml';
 
-const criterion = new CrossEntropyLoss();
-const optimizer = new Adam(model.parameters(), 0.001);
+// Данные XOR
+const X = tensor([[0,0], [0,1], [1,0], [1,1]]);
+const Y = tensor([[0], [1], [1], [0]]);
 
-for (const batch of dataLoader) {
-  const output = model.forward(batch.input);
-  const loss = criterion.forward(output, batch.target);
-  
+// Простая сеть
+const model = new Sequential(
+  new Linear(2, 8),
+  new ReLU(),
+  new Linear(8, 1),
+  new Sigmoid()
+);
+
+const optimizer = new Adam(model.parameters(), 0.1);
+const criterion = new MSELoss();
+
+// Обучение
+for (let i = 0; i < 1000; i++) {
+  const pred = model.forward(X);
+  const loss = criterion.forward(pred, Y);
+
   optimizer.zeroGrad();
   loss.backward();
   optimizer.step();
 }
+
+// Тест
+console.log('Предсказания:', model.forward(X).toArray());
+// Ожидается: [[~0], [~1], [~1], [~0]]
 ```
 
-### Кастомные слои
+### Загрузка моделей из Hugging Face
 
 ```typescript
-import { Module, Parameter, Linear, Tensor } from './src';
+import { HuggingFaceHub } from 'brainy-ml';
 
-class MyLayer extends Module {
-  weight: Parameter;
-  linear: Linear;
+const hub = new HuggingFaceHub();
 
-  constructor(inFeatures: number, outFeatures: number) {
-    super();
-    this.weight = new Parameter(randn([inFeatures]), 'weight');
-    this.linear = new Linear(inFeatures, outFeatures);
-    
-    this.registerParameter('weight', this.weight);
-    this.registerModule('linear', this.linear);
-  }
+// Получаем информацию о модели
+const info = await hub.getModelInfo('Qwen/Qwen2.5-0.5B');
+console.log('Модель:', info.id);
 
-  forward(x: Tensor): Tensor {
-    return this.linear.forward(x.mul(this.weight.data));
-  }
+// Скачиваем конфигурацию
+const config = await hub.downloadConfig('Qwen/Qwen2.5-0.5B');
+console.log('Hidden size:', config.hidden_size);
+
+// Скачиваем веса (формат safetensors)
+const weights = await hub.downloadWeights('Qwen/Qwen2.5-0.5B');
+console.log('Загружено', weights.size, 'тензоров');
+```
+
+## Справочник API
+
+### Основное
+
+| Функция | Описание |
+|---------|----------|
+| `tensor(data, options?)` | Создать тензор из массива |
+| `zeros(shape, options?)` | Тензор из нулей |
+| `ones(shape, options?)` | Тензор из единиц |
+| `rand(shape, options?)` | Равномерное распределение [0, 1) |
+| `randn(shape, mean?, std?, options?)` | Нормальное распределение |
+| `eye(n, options?)` | Единичная матрица |
+| `linspace(start, end, steps, options?)` | Равномерно распределённые значения |
+| `arange(start, end?, step?, options?)` | Диапазон значений |
+
+### Операции с тензорами
+
+| Метод | Описание |
+|-------|----------|
+| `.add(other)` | Поэлементное сложение |
+| `.sub(other)` | Поэлементное вычитание |
+| `.mul(other)` | Поэлементное умножение |
+| `.div(other)` | Поэлементное деление |
+| `.matmul(other)` | Матричное умножение |
+| `.pow(exp)` | Возведение в степень |
+| `.sqrt()` | Квадратный корень |
+| `.exp()` | Экспонента |
+| `.log()` | Натуральный логарифм |
+| `.sum(dim?, keepdim?)` | Сумма |
+| `.mean(dim?, keepdim?)` | Среднее |
+| `.max(dim?, keepdim?)` | Максимум |
+| `.min(dim?, keepdim?)` | Минимум |
+| `.reshape(...shape)` | Изменить форму |
+| `.transpose(dim0, dim1)` | Поменять измерения местами |
+| `.T` | Сокращение для transpose(0, 1) |
+| `.backward()` | Вычислить градиенты |
+
+### Слои нейронных сетей
+
+| Класс | Описание |
+|-------|----------|
+| `Linear(in, out, bias?)` | Полносвязный слой |
+| `Conv2d(in, out, kernel, stride?, padding?)` | 2D свёртка |
+| `MaxPool2d(kernel, stride?, padding?)` | Макс пулинг |
+| `AvgPool2d(kernel, stride?, padding?)` | Средний пулинг |
+| `BatchNorm1d(features)` | Batch нормализация 1D |
+| `BatchNorm2d(features)` | Batch нормализация 2D |
+| `LayerNorm(shape)` | Layer нормализация |
+| `Dropout(p)` | Dropout регуляризация |
+| `Embedding(num, dim)` | Слой Embedding |
+| `Flatten(startDim?, endDim?)` | Выравнивание |
+
+### Активации
+
+| Класс | Описание |
+|-------|----------|
+| `ReLU()` | Rectified Linear Unit |
+| `LeakyReLU(slope?)` | Leaky ReLU |
+| `GELU()` | Gaussian Error Linear Unit |
+| `SiLU()` / `Swish()` | Sigmoid Linear Unit |
+| `Sigmoid()` | Сигмоида |
+| `Tanh()` | Гиперболический тангенс |
+| `Softmax(dim)` | Softmax |
+| `LogSoftmax(dim)` | Log softmax |
+
+### Функции потерь
+
+| Класс | Описание |
+|-------|----------|
+| `MSELoss()` | Среднеквадратичная ошибка |
+| `L1Loss()` | Средняя абсолютная ошибка |
+| `CrossEntropyLoss()` | Кросс-энтропия для классификации |
+| `BCELoss()` | Бинарная кросс-энтропия |
+| `BCEWithLogitsLoss()` | BCE с сигмоидой |
+| `NLLLoss()` | Negative log likelihood |
+| `HingeLoss()` | Hinge loss для SVM |
+| `KLDivLoss()` | KL дивергенция |
+
+### Оптимизаторы
+
+| Класс | Описание |
+|-------|----------|
+| `SGD(params, lr, momentum?)` | Стохастический градиентный спуск |
+| `Adam(params, lr, betas?, eps?)` | Adam оптимизатор |
+| `AdamW(params, lr, betas?, weightDecay?)` | Adam с weight decay |
+| `RMSprop(params, lr, alpha?)` | RMSprop оптимизатор |
+| `Adagrad(params, lr)` | Adagrad оптимизатор |
+
+### Планировщики скорости обучения
+
+| Класс | Описание |
+|-------|----------|
+| `StepLR(optimizer, stepSize, gamma?)` | Ступенчатое уменьшение |
+| `ExponentialLR(optimizer, gamma)` | Экспоненциальное уменьшение |
+| `CosineAnnealingLR(optimizer, tMax)` | Косинусный отжиг |
+| `ReduceLROnPlateau(optimizer, mode?, factor?)` | Уменьшение на плато |
+
+### Готовые модели
+
+| Класс | Описание |
+|-------|----------|
+| `GPT(config)` | GPT-style трансформер |
+| `VAE(config)` | Вариационный автокодировщик |
+| `ConvVAE(config)` | Свёрточный VAE |
+| `TRM*(config)` | Варианты модели TRM |
+| `TransformerEncoder` | Encoder трансформера |
+| `TransformerDecoder` | Decoder трансформера |
+
+## Поддержка GPU
+
+Brainy ML поддерживает WebGPU для GPU ускорения:
+
+```typescript
+import { isWebGPUSupported, createDevice } from 'brainy-ml';
+
+if (await isWebGPUSupported()) {
+  const device = await createDevice('gpu');
+  console.log('GPU включен!');
 }
 ```
 
-## 📂 Структура проекта
+## Примеры
 
-```
-brainy/
-├── src/
-│   ├── core/           # Тензоры и autograd
-│   │   ├── tensor.ts
-│   │   ├── autograd.ts
-│   │   ├── dtype.ts
-│   │   └── shape.ts
-│   ├── nn/             # Нейросетевые модули
-│   │   ├── module.ts
-│   │   ├── layers.ts
-│   │   ├── activations.ts
-│   │   ├── loss.ts
-│   │   └── init.ts
-│   ├── optim/          # Оптимизаторы
-│   │   └── optimizer.ts
-│   ├── data/           # Data utilities
-│   │   └── dataloader.ts
-│   ├── functional/     # Функциональный API
-│   │   └── functional.ts
-│   ├── utils/          # Утилиты
-│   │   ├── serialize.ts
-│   │   └── random.ts
-│   └── index.ts        # Главный экспорт
-├── examples/           # Примеры использования
-└── package.json
-```
+Смотрите папку `examples/` для больших примеров:
 
-## 🔧 Сравнение с PyTorch
+- `01-basic-tensors.ts` - Операции с тензорами
+- `02-autograd.ts` - Автодифференцирование
+- `03-linear-regression.ts` - Линейная регрессия
+- `04-xor-neural-network.ts` - Задача XOR
+- `05-mnist-classification.ts` - Классификация MNIST
+- `07-text-generation.ts` - Генерация текста с GPT
+- `26-huggingface-example.ts` - Интеграция с Hugging Face
+- `27-qwen3-example.ts` - Загрузка модели Qwen
 
-| PyTorch | Brainy |
-|---------|--------|
-| `torch.tensor([1, 2, 3])` | `tensor([1, 2, 3])` |
-| `torch.zeros(2, 3)` | `zeros([2, 3])` |
-| `x @ y` | `x.matmul(y)` |
-| `nn.Linear(10, 5)` | `new Linear(10, 5)` |
-| `nn.Sequential(...)` | `new Sequential(...)` |
-| `optim.Adam(...)` | `new Adam(...)` |
-| `loss.backward()` | `loss.backward()` |
+## Вклад в проект
 
-## 📄 Лицензия
+Вклады приветствуются! Пожалуйста, создавайте Pull Request.
 
-MIT License
+## Лицензия
+
+MIT License - см. файл [LICENSE](LICENSE) для деталей.
+
+## Ссылки
+
+- [Документация](https://nopass0.github.io/brainy)
+- [GitHub репозиторий](https://github.com/Nopass0/brainy)
+- [npm пакет](https://www.npmjs.com/package/brainy-ml)

@@ -1,20 +1,41 @@
 {
-  "name": "brainy",
-  "version": "1.0.0",
-  "description": "🧠 Быстрый AI/ML фреймворк для Bun с поддержкой GPU/CPU, автодифференцированием и PyTorch-подобным API",
-  "main": "src/index.ts",
-  "module": "src/index.ts",
-  "types": "src/index.ts",
+  "name": "brainy-ml",
+  "version": "2.1.0",
+  "description": "Fast AI/ML framework for Bun/Node.js with GPU/CPU support, automatic differentiation and PyTorch-like API. Includes transformers, CNNs, RNNs, and pre-built models.",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "import": "./src/index.ts",
+      "require": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "README_EN.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --target bun",
+    "build": "echo 'No build required - Bun uses TypeScript directly'",
     "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:watch": "bun test --watch",
+    "typecheck": "tsc --noEmit --skipLibCheck",
+    "prepublishOnly": "bun test",
     "example:tensors": "bun run examples/01-basic-tensors.ts",
     "example:autograd": "bun run examples/02-autograd.ts",
     "example:regression": "bun run examples/03-linear-regression.ts",
     "example:xor": "bun run examples/04-xor-neural-network.ts",
     "example:mnist": "bun run examples/05-mnist-classification.ts",
     "example:custom": "bun run examples/06-custom-layer.ts",
-    "examples": "bun run example:tensors && bun run example:autograd && bun run example:regression && bun run example:xor && bun run example:custom"
+    "example:huggingface": "bun run examples/26-huggingface-example.ts",
+    "example:qwen": "bun run examples/27-qwen3-example.ts",
+    "examples": "bun run example:tensors && bun run example:autograd && bun run example:regression && bun run example:xor"
   },
   "keywords": [
     "ai",
@@ -24,15 +45,39 @@
     "neural-network",
     "tensor",
     "autograd",
+    "pytorch",
+    "transformer",
+    "gpt",
+    "llm",
     "bun",
     "typescript",
     "gpu",
-    "webgpu"
+    "webgpu",
+    "cnn",
+    "rnn",
+    "lstm",
+    "attention",
+    "huggingface",
+    "safetensors"
   ],
-  "author": "",
+  "author": "Brainy Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nopass0/brainy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Nopass0/brainy/issues"
+  },
+  "homepage": "https://nopass0.github.io/brainy",
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/node": "^20.0.0",
+    "typedoc": "^0.25.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {
@@ -40,5 +85,13 @@
   },
   "optionalDependencies": {
     "bun-webgpu": "^0.1.4"
+  },
+  "peerDependencies": {
+    "bun": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "bun": {
+      "optional": true
+    }
   }
 }
