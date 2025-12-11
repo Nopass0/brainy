@@ -34,7 +34,7 @@ async function initWebGPUProviderAsync(): Promise<void> {
   if (DISABLE_GPU) return;
 
   if (IS_BUN) {
-    // Bun runtime - use bun-webgpu with setupGlobals
+    // Bun runtime - try bun-webgpu first
     try {
       const bunWebGPU = await import('bun-webgpu');
       if (bunWebGPU && bunWebGPU.setupGlobals) {
@@ -44,7 +44,19 @@ async function initWebGPUProviderAsync(): Promise<void> {
         }
       }
     } catch {
-      // bun-webgpu not installed
+      // bun-webgpu not installed, try webgpu package as fallback
+      try {
+        const nodeWebGPU = await import('webgpu');
+        if (nodeWebGPU && nodeWebGPU.create) {
+          if (nodeWebGPU.globals) {
+            Object.assign(globalThis, nodeWebGPU.globals);
+          }
+          const gpu = nodeWebGPU.create([]);
+          webgpuProvider = { type: 'webgpu', gpu };
+        }
+      } catch {
+        // webgpu not available either
+      }
     }
   } else if (IS_NODE) {
     // Node.js runtime - use webgpu (dawn)
