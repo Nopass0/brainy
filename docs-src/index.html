@@ -741,109 +741,176 @@ console.<span class="function">log</span>(<span class="string">'Vocab size:'</sp
                     <h4>Core</h4>
                     <ul class="api-list">
                         <li>tensor()</li>
-                        <li>zeros()</li>
-                        <li>ones()</li>
-                        <li>rand()</li>
-                        <li>randn()</li>
-                        <li>eye()</li>
-                        <li>linspace()</li>
-                        <li>arange()</li>
+                        <li>zeros() / ones()</li>
+                        <li>rand() / randn()</li>
+                        <li>eye() / linspace()</li>
+                        <li>arange() / full()</li>
+                        <li>cat() / stack()</li>
+                        <li>noGrad()</li>
+                        <li>manualSeed()</li>
                     </ul>
                 </div>
 
                 <div class="api-card">
                     <h4>Tensor Operations</h4>
                     <ul class="api-list">
-                        <li>.add()</li>
-                        <li>.sub()</li>
-                        <li>.mul()</li>
-                        <li>.div()</li>
-                        <li>.matmul()</li>
-                        <li>.pow()</li>
-                        <li>.exp()</li>
-                        <li>.log()</li>
+                        <li>.add() / .sub() / .mul() / .div()</li>
+                        <li>.matmul() / .pow() / .sqrt()</li>
+                        <li>.exp() / .log() / .abs()</li>
+                        <li>.sum() / .mean() / .max() / .min()</li>
+                        <li>.reshape() / .view() / .T</li>
+                        <li>.transpose() / .permute()</li>
+                        <li>.squeeze() / .unsqueeze()</li>
+                        <li>.backward() / .detach() / .clone()</li>
                     </ul>
                 </div>
 
                 <div class="api-card">
                     <h4>Neural Networks</h4>
                     <ul class="api-list">
-                        <li>Linear</li>
-                        <li>Conv2d</li>
-                        <li>MaxPool2d</li>
-                        <li>BatchNorm</li>
-                        <li>Dropout</li>
-                        <li>Embedding</li>
-                        <li>LayerNorm</li>
-                        <li>Sequential</li>
+                        <li>Linear / Conv2d</li>
+                        <li>MaxPool2d / AvgPool2d</li>
+                        <li>BatchNorm1d / BatchNorm2d</li>
+                        <li>LayerNorm / Dropout</li>
+                        <li>Embedding / Flatten</li>
+                        <li>Sequential / Module</li>
+                        <li>Parameter</li>
                     </ul>
                 </div>
 
                 <div class="api-card">
                     <h4>Activations</h4>
                     <ul class="api-list">
-                        <li>ReLU</li>
-                        <li>GELU</li>
-                        <li>SiLU</li>
-                        <li>Sigmoid</li>
-                        <li>Tanh</li>
-                        <li>Softmax</li>
-                        <li>LeakyReLU</li>
-                        <li>Mish</li>
+                        <li>ReLU / LeakyReLU / ELU</li>
+                        <li>GELU / SiLU / Swish</li>
+                        <li>Sigmoid / Tanh</li>
+                        <li>Softmax / LogSoftmax</li>
+                        <li>PReLU / SELU</li>
+                        <li>Mish / Hardswish</li>
                     </ul>
                 </div>
 
                 <div class="api-card">
                     <h4>Loss Functions</h4>
                     <ul class="api-list">
-                        <li>MSELoss</li>
+                        <li>MSELoss / L1Loss</li>
                         <li>CrossEntropyLoss</li>
-                        <li>BCELoss</li>
-                        <li>NLLLoss</li>
-                        <li>L1Loss</li>
-                        <li>HingeLoss</li>
+                        <li>BCELoss / BCEWithLogitsLoss</li>
+                        <li>NLLLoss / HingeLoss</li>
+                        <li>SmoothL1Loss</li>
                         <li>KLDivLoss</li>
                         <li>CosineEmbeddingLoss</li>
                     </ul>
                 </div>
 
                 <div class="api-card">
-                    <h4>Optimizers</h4>
+                    <h4>Optimizers & LR</h4>
                     <ul class="api-list">
-                        <li>SGD</li>
-                        <li>Adam</li>
-                        <li>AdamW</li>
-                        <li>RMSprop</li>
-                        <li>Adagrad</li>
-                        <li>StepLR</li>
+                        <li>SGD / Adam / AdamW</li>
+                        <li>RMSprop / Adagrad</li>
+                        <li>StepLR / ExponentialLR</li>
                         <li>CosineAnnealingLR</li>
                         <li>ReduceLROnPlateau</li>
                     </ul>
                 </div>
 
                 <div class="api-card">
-                    <h4>Models</h4>
+                    <h4>Transformers</h4>
                     <ul class="api-list">
-                        <li>GPT</li>
-                        <li>VAE / ConvVAE</li>
-                        <li>TRM (multiple variants)</li>
-                        <li>Transformer</li>
                         <li>MultiHeadAttention</li>
+                        <li>TransformerEncoder</li>
+                        <li>TransformerDecoder</li>
                         <li>PositionalEncoding</li>
-                        <li>RotaryEmbedding</li>
+                        <li>RotaryEmbedding (RoPE)</li>
+                        <li>createCausalMask()</li>
+                        <li>FeedForward</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Pre-built Models</h4>
+                    <ul class="api-list">
+                        <li>GPT / createSmallGPT()</li>
+                        <li>VAE / ConvVAE</li>
+                        <li>TRM / TRMv2 / TRMUltra</li>
+                        <li>TRMPro / TRMSupreme</li>
+                        <li>TRMLite / TRMX</li>
+                        <li>MultimodalFewShot</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Data & Tokenizers</h4>
+                    <ul class="api-list">
+                        <li>DataLoader / TensorDataset</li>
+                        <li>trainTestSplit()</li>
+                        <li>StreamingDataset</li>
+                        <li>loadJson() / loadCsv()</li>
+                        <li>BPETokenizer</li>
+                        <li>WordPieceTokenizer</li>
+                        <li>loadTokenizer()</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Hugging Face</h4>
+                    <ul class="api-list">
+                        <li>HuggingFaceHub</li>
+                        <li>getModelInfo()</li>
+                        <li>listFiles()</li>
+                        <li>downloadConfig()</li>
+                        <li>downloadWeights()</li>
+                        <li>downloadTokenizer()</li>
+                        <li>loadWeightsIntoModel()</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Fine-tuning & Quant</h4>
+                    <ul class="api-list">
+                        <li>LoRALayer / AdapterLayer</li>
+                        <li>createLoRAModel()</li>
+                        <li>FineTuneTrainer</li>
+                        <li>dynamicQuantize()</li>
+                        <li>prepareQAT() / convertQAT()</li>
+                        <li>getModelSize()</li>
                     </ul>
                 </div>
 
                 <div class="api-card">
                     <h4>Utilities</h4>
                     <ul class="api-list">
-                        <li>saveModel()</li>
-                        <li>loadModel()</li>
-                        <li>HuggingFaceHub</li>
-                        <li>Quantizer</li>
-                        <li>LoRALayer</li>
-                        <li>DataLoader</li>
-                        <li>Tokenizer</li>
+                        <li>saveModel() / loadModel()</li>
+                        <li>saveCheckpoint() / loadCheckpoint()</li>
+                        <li>visualize() / summary()</li>
+                        <li>isWebGPUSupported()</li>
+                        <li>createDevice()</li>
+                        <li>GPUBackend</li>
+                        <li>WorkerPool</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Reinforcement Learning</h4>
+                    <ul class="api-list">
+                        <li>DQNAgent</li>
+                        <li>PolicyGradientAgent</li>
+                        <li>ActorCriticAgent</li>
+                        <li>ReplayBuffer</li>
+                        <li>CartPoleEnv</li>
+                        <li>GridWorldEnv</li>
+                        <li>trainDQN()</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Weight Init</h4>
+                    <ul class="api-list">
+                        <li>xavierUniform() / xavierNormal()</li>
+                        <li>kaimingUniform() / kaimingNormal()</li>
+                        <li>uniform() / normal()</li>
+                        <li>constant() / orthogonal()</li>
+                        <li>zeros_() / ones_()</li>
                     </ul>
                 </div>
             </div>
