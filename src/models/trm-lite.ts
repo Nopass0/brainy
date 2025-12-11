@@ -23,6 +23,8 @@ export class TRMLite extends Module {
   private config: Required<TRMLiteConfig>;
 
   private encoder: Sequential;
+  private initY: Linear;
+  private initZ: Linear;
   private latentNet: Sequential;
   private answerNet: Sequential;
   private decoder: Sequential;
@@ -44,6 +46,12 @@ export class TRMLite extends Module {
       new ReLU()
     );
     this.registerModule('encoder', this.encoder);
+
+    // Initialize y and z from encoded input (connected to computation graph!)
+    this.initY = new Linear(hiddenDim, hiddenDim);
+    this.initZ = new Linear(hiddenDim, hiddenDim);
+    this.registerModule('initY', this.initY);
+    this.registerModule('initZ', this.initZ);
 
     // Latent network: [x, y, z] -> z_new
     this.latentNet = new Sequential(
@@ -83,17 +91,15 @@ export class TRMLite extends Module {
 
   forward(x: Tensor, numSteps?: number): Tensor {
     const steps = numSteps ?? this.config.numRecursions;
-    const hiddenDim = this.config.hiddenDim;
-    const batchSize = x.shape[0];
 
     // Encode
     const xEnc = this.encoder.forward(x);
 
-    // Initialize y and z with zeros
-    let y = zeros([batchSize, hiddenDim], { requiresGrad: true });
-    let z = zeros([batchSize, hiddenDim], { requiresGrad: true });
+    // Initialize y and z from xEnc (connected to computation graph)
+    let y = this.initY.forward(xEnc);
+    let z = this.initZ.forward(xEnc);
 
-    // Recursive refinement - NO residual, direct replacement
+    // Recursive refinement
     for (let i = 0; i < steps; i++) {
       // Update z
       const combined = cat([xEnc, y, z], -1);
@@ -113,14 +119,12 @@ export class TRMLite extends Module {
     intermediates: { y: Tensor; z: Tensor }[];
   } {
     const steps = numSteps ?? this.config.numRecursions;
-    const hiddenDim = this.config.hiddenDim;
-    const batchSize = x.shape[0];
     const intermediates: { y: Tensor; z: Tensor }[] = [];
 
     const xEnc = this.encoder.forward(x);
 
-    let y = zeros([batchSize, hiddenDim], { requiresGrad: true });
-    let z = zeros([batchSize, hiddenDim], { requiresGrad: true });
+    let y = this.initY.forward(xEnc);
+    let z = this.initZ.forward(xEnc);
 
     intermediates.push({ y: y.clone(), z: z.clone() });
 

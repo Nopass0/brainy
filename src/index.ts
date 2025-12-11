@@ -465,6 +465,17 @@ export type {
 } from './rl/index';
 
 // ============================================
+// HUB - Model Hub Integration (Hugging Face)
+// ============================================
+export {
+  HuggingFaceHub,
+  createHuggingFaceHub,
+  downloadModel,
+  loadWeightsIntoModel,
+} from './hub/index';
+export type { HFModelInfo } from './hub/index';
+
+// ============================================
 // VERSION
 // ============================================
 export const VERSION = '2.1.0';
