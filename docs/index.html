@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainy ML - Fast AI/ML Framework</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-dark);
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        nav {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        nav a:hover {
+            color: var(--text);
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 5px;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .lang-btn {
+            padding: 6px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+        }
+
+        /* Install */
+        .install-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 500px;
+            margin: 40px auto;
+        }
+
+        .install-code {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-dark);
+            padding: 15px 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .install-code code {
+            color: var(--success);
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        /* Features */
+        .features {
+            padding: 80px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+        }
+
+        /* Code Examples */
+        .examples {
+            padding: 80px 0;
+        }
+
+        .example-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .example-tab {
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .example-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .example-content {
+            display: none;
+        }
+
+        .example-content.active {
+            display: block;
+        }
+
+        .code-block {
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .code-header {
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-title {
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .run-btn {
+            padding: 6px 15px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .run-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        .output-block {
+            margin-top: 15px;
+            padding: 15px 20px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .output-block.visible {
+            display: block;
+        }
+
+        .output-title {
+            color: var(--success);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .output-content {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            white-space: pre-wrap;
+        }
+
+        /* API Section */
+        .api-section {
+            padding: 80px 0;
+        }
+
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .api-card {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .api-card h4 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .api-list {
+            list-style: none;
+        }
+
+        .api-list li {
+            padding: 5px 0;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Syntax highlighting */
+        .keyword { color: #c678dd; }
+        .string { color: #98c379; }
+        .number { color: #d19a66; }
+        .function { color: #61afef; }
+        .comment { color: #5c6370; font-style: italic; }
+        .class { color: #e5c07b; }
+        .variable { color: #e06c75; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            nav { gap: 15px; }
+            .header-content { flex-direction: column; gap: 15px; }
+        }
+
+        /* Language switching */
+        .lang-ru { display: none; }
+        body.ru .lang-en { display: none; }
+        body.ru .lang-ru { display: block; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="#" class="logo">Brainy ML</a>
+            <nav>
+                <a href="#features" class="lang-en">Features</a>
+                <a href="#features" class="lang-ru">Возможности</a>
+                <a href="#examples" class="lang-en">Examples</a>
+                <a href="#examples" class="lang-ru">Примеры</a>
+                <a href="#api" class="lang-en">API</a>
+                <a href="#api" class="lang-ru">API</a>
+                <a href="https://github.com/Nopass0/brainy" target="_blank">GitHub</a>
+                <div class="lang-switch">
+                    <button class="lang-btn active" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="ru">RU</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1 class="lang-en">Fast AI/ML Framework for TypeScript</h1>
+            <h1 class="lang-ru">Быстрый AI/ML фреймворк для TypeScript</h1>
+            <p class="lang-en">PyTorch-like API with automatic differentiation, GPU support, and pre-built models. Build neural networks with ease in Bun/Node.js.</p>
+            <p class="lang-ru">PyTorch-подобный API с автодифференцированием, поддержкой GPU и готовыми моделями. Создавайте нейронные сети легко в Bun/Node.js.</p>
+
+            <div class="hero-buttons">
+                <a href="#examples" class="btn btn-primary lang-en">Get Started</a>
+                <a href="#examples" class="btn btn-primary lang-ru">Начать</a>
+                <a href="https://github.com/Nopass0/brainy" class="btn btn-secondary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    GitHub
+                </a>
+            </div>
+
+            <div class="install-section">
+                <div class="install-code">
+                    <code>bun add brainy-ml</code>
+                    <button class="copy-btn" onclick="copyInstall()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title lang-en">Why Brainy ML?</h2>
+            <h2 class="section-title lang-ru">Почему Brainy ML?</h2>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3 class="lang-en">Lightning Fast</h3>
+                    <h3 class="lang-ru">Молниеносно быстрый</h3>
+                    <p class="lang-en">Built for Bun runtime with optimized tensor operations. WebGPU support for massive speedups.</p>
+                    <p class="lang-ru">Создан для Bun с оптимизированными тензорными операциями. Поддержка WebGPU для огромного ускорения.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3 class="lang-en">Automatic Differentiation</h3>
+                    <h3 class="lang-ru">Автоматическое дифференцирование</h3>
+                    <p class="lang-en">Full autograd support with backward() for any computation graph. Train models with ease.</p>
+                    <p class="lang-ru">Полная поддержка autograd с backward() для любого вычислительного графа. Обучайте модели легко.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <h3 class="lang-en">Pre-built Models</h3>
+                    <h3 class="lang-ru">Готовые модели</h3>
+                    <p class="lang-en">GPT, Transformers, VAE, and more. Load weights from Hugging Face Hub.</p>
+                    <p class="lang-ru">GPT, Transformers, VAE и другие. Загружайте веса из Hugging Face Hub.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3 class="lang-en">PyTorch-like API</h3>
+                    <h3 class="lang-ru">PyTorch-подобный API</h3>
+                    <p class="lang-en">Familiar API if you know PyTorch. Module, Sequential, optimizers, losses - all here.</p>
+                    <p class="lang-ru">Знакомый API если вы знаете PyTorch. Module, Sequential, оптимизаторы, losses - всё здесь.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3 class="lang-en">Type-Safe</h3>
+                    <h3 class="lang-ru">Типобезопасный</h3>
+                    <p class="lang-en">Full TypeScript support with comprehensive type definitions.</p>
+                    <p class="lang-ru">Полная поддержка TypeScript с исчерпывающими определениями типов.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🤗</div>
+                    <h3 class="lang-en">Hugging Face Integration</h3>
+                    <h3 class="lang-ru">Интеграция с Hugging Face</h3>
+                    <p class="lang-en">Download and use pre-trained models directly from Hugging Face Hub.</p>
+                    <p class="lang-ru">Скачивайте и используйте предобученные модели напрямую из Hugging Face Hub.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="examples" id="examples">
+        <div class="container">
+            <h2 class="section-title lang-en">Interactive Examples</h2>
+            <h2 class="section-title lang-ru">Интерактивные примеры</h2>
+
+            <div class="example-tabs">
+                <button class="example-tab active" data-example="tensor">Tensor</button>
+                <button class="example-tab" data-example="autograd">Autograd</button>
+                <button class="example-tab" data-example="nn">Neural Network</button>
+                <button class="example-tab" data-example="training">Training</button>
+                <button class="example-tab" data-example="huggingface">Hugging Face</button>
+            </div>
+
+            <div id="example-tensor" class="example-content active">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-title lang-en">Basic Tensor Operations</span>
+                        <span class="code-title lang-ru">Базовые операции с тензорами</span>
+                        <button class="run-btn" onclick="runExample('tensor')">
+                            ▶ <span class="lang-en">Run</span><span class="lang-ru">Запустить</span>
+                        </button>
+                    </div>
+                    <pre><code><span class="keyword">import</span> { <span class="variable">tensor</span>, <span class="variable">zeros</span>, <span class="variable">ones</span>, <span class="variable">randn</span> } <span class="keyword">from</span> <span class="string">'brainy-ml'</span>;
+
+<span class="comment">// Create tensors / Создание тензоров</span>
+<span class="keyword">const</span> a = <span class="function">tensor</span>([[<span class="number">1</span>, <span class="number">2</span>], [<span class="number">3</span>, <span class="number">4</span>]]);
+<span class="keyword">const</span> b = <span class="function">zeros</span>([<span class="number">2</span>, <span class="number">2</span>]);
+<span class="keyword">const</span> c = <span class="function">randn</span>([<span class="number">3</span>, <span class="number">3</span>]);
+
+<span class="comment">// Operations / Операции</span>
+<span class="keyword">const</span> sum = a.<span class="function">add</span>(b);
+<span class="keyword">const</span> product = a.<span class="function">matmul</span>(a.<span class="variable">T</span>);
+<span class="keyword">const</span> mean = c.<span class="function">mean</span>();
+
+console.<span class="function">log</span>(<span class="string">'Sum shape:'</span>, sum.<span class="variable">shape</span>);
+console.<span class="function">log</span>(<span class="string">'Product:'</span>, product.<span class="function">toArray</span>());
+console.<span class="function">log</span>(<span class="string">'Mean:'</span>, mean.<span class="function">item</span>());</code></pre>
+                </div>
+                <div id="output-tensor" class="output-block">
+                    <div class="output-title lang-en">Output:</div>
+                    <div class="output-title lang-ru">Результат:</div>
+                    <div class="output-content"></div>
+                </div>
+            </div>
+
+            <div id="example-autograd" class="example-content">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-title lang-en">Automatic Differentiation</span>
+                        <span class="code-title lang-ru">Автоматическое дифференцирование</span>
+                        <button class="run-btn" onclick="runExample('autograd')">
+                            ▶ <span class="lang-en">Run</span><span class="lang-ru">Запустить</span>
+                        </button>
+                    </div>
+                    <pre><code><span class="keyword">import</span> { <span class="variable">tensor</span> } <span class="keyword">from</span> <span class="string">'brainy-ml'</span>;
+
+<span class="comment">// Create tensor with gradient tracking</span>
+<span class="comment">// Создаём тензор с отслеживанием градиентов</span>
+<span class="keyword">const</span> x = <span class="function">tensor</span>([[<span class="number">2.0</span>]], { <span class="variable">requiresGrad</span>: <span class="keyword">true</span> });
+
+<span class="comment">// y = x^2 + 3x + 1</span>
+<span class="keyword">const</span> y = x.<span class="function">pow</span>(<span class="number">2</span>).<span class="function">add</span>(x.<span class="function">mul</span>(<span class="number">3</span>)).<span class="function">add</span>(<span class="number">1</span>);
+
+<span class="comment">// Compute gradients / Вычисляем градиенты</span>
+y.<span class="function">backward</span>();
+
+<span class="comment">// dy/dx = 2x + 3 = 2*2 + 3 = 7</span>
+console.<span class="function">log</span>(<span class="string">'x:'</span>, x.<span class="function">item</span>());
+console.<span class="function">log</span>(<span class="string">'y:'</span>, y.<span class="function">item</span>());
+console.<span class="function">log</span>(<span class="string">'dy/dx:'</span>, x.<span class="variable">grad</span>.<span class="function">item</span>());</code></pre>
+                </div>
+                <div id="output-autograd" class="output-block">
+                    <div class="output-title lang-en">Output:</div>
+                    <div class="output-title lang-ru">Результат:</div>
+                    <div class="output-content"></div>
+                </div>
+            </div>
+
+            <div id="example-nn" class="example-content">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-title lang-en">Neural Network</span>
+                        <span class="code-title lang-ru">Нейронная сеть</span>
+                        <button class="run-btn" onclick="runExample('nn')">
+                            ▶ <span class="lang-en">Run</span><span class="lang-ru">Запустить</span>
+                        </button>
+                    </div>
+                    <pre><code><span class="keyword">import</span> {
+  <span class="class">Sequential</span>, <span class="class">Linear</span>, <span class="class">ReLU</span>,
+  <span class="class">Sigmoid</span>, <span class="variable">randn</span>
+} <span class="keyword">from</span> <span class="string">'brainy-ml'</span>;
+
+<span class="comment">// Build a neural network / Строим нейронную сеть</span>
+<span class="keyword">const</span> model = <span class="keyword">new</span> <span class="class">Sequential</span>(
+  <span class="keyword">new</span> <span class="class">Linear</span>(<span class="number">10</span>, <span class="number">64</span>),    <span class="comment">// Input layer</span>
+  <span class="keyword">new</span> <span class="class">ReLU</span>(),             <span class="comment">// Activation</span>
+  <span class="keyword">new</span> <span class="class">Linear</span>(<span class="number">64</span>, <span class="number">32</span>),   <span class="comment">// Hidden layer</span>
+  <span class="keyword">new</span> <span class="class">ReLU</span>(),
+  <span class="keyword">new</span> <span class="class">Linear</span>(<span class="number">32</span>, <span class="number">1</span>),    <span class="comment">// Output layer</span>
+  <span class="keyword">new</span> <span class="class">Sigmoid</span>()
+);
+
+<span class="comment">// Forward pass / Прямой проход</span>
+<span class="keyword">const</span> input = <span class="function">randn</span>([<span class="number">4</span>, <span class="number">10</span>]);
+<span class="keyword">const</span> output = model.<span class="function">forward</span>(input);
+
+console.<span class="function">log</span>(<span class="string">'Model parameters:'</span>, model.<span class="function">numParameters</span>());
+console.<span class="function">log</span>(<span class="string">'Input shape:'</span>, input.<span class="variable">shape</span>);
+console.<span class="function">log</span>(<span class="string">'Output shape:'</span>, output.<span class="variable">shape</span>);</code></pre>
+                </div>
+                <div id="output-nn" class="output-block">
+                    <div class="output-title lang-en">Output:</div>
+                    <div class="output-title lang-ru">Результат:</div>
+                    <div class="output-content"></div>
+                </div>
+            </div>
+
+            <div id="example-training" class="example-content">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-title lang-en">Training Loop (XOR Problem)</span>
+                        <span class="code-title lang-ru">Цикл обучения (задача XOR)</span>
+                        <button class="run-btn" onclick="runExample('training')">
+                            ▶ <span class="lang-en">Run</span><span class="lang-ru">Запустить</span>
+                        </button>
+                    </div>
+                    <pre><code><span class="keyword">import</span> {
+  <span class="class">Sequential</span>, <span class="class">Linear</span>, <span class="class">ReLU</span>, <span class="class">Sigmoid</span>,
+  <span class="class">MSELoss</span>, <span class="class">Adam</span>, <span class="variable">tensor</span>
+} <span class="keyword">from</span> <span class="string">'brainy-ml'</span>;
+
+<span class="comment">// XOR data / Данные XOR</span>
+<span class="keyword">const</span> X = <span class="function">tensor</span>([[<span class="number">0</span>,<span class="number">0</span>], [<span class="number">0</span>,<span class="number">1</span>], [<span class="number">1</span>,<span class="number">0</span>], [<span class="number">1</span>,<span class="number">1</span>]]);
+<span class="keyword">const</span> Y = <span class="function">tensor</span>([[<span class="number">0</span>], [<span class="number">1</span>], [<span class="number">1</span>], [<span class="number">0</span>]]);
+
+<span class="comment">// Model / Модель</span>
+<span class="keyword">const</span> model = <span class="keyword">new</span> <span class="class">Sequential</span>(
+  <span class="keyword">new</span> <span class="class">Linear</span>(<span class="number">2</span>, <span class="number">8</span>), <span class="keyword">new</span> <span class="class">ReLU</span>(),
+  <span class="keyword">new</span> <span class="class">Linear</span>(<span class="number">8</span>, <span class="number">1</span>), <span class="keyword">new</span> <span class="class">Sigmoid</span>()
+);
+
+<span class="keyword">const</span> optimizer = <span class="keyword">new</span> <span class="class">Adam</span>(model.<span class="function">parameters</span>(), <span class="number">0.1</span>);
+<span class="keyword">const</span> criterion = <span class="keyword">new</span> <span class="class">MSELoss</span>();
+
+<span class="comment">// Training / Обучение</span>
+<span class="keyword">for</span> (<span class="keyword">let</span> epoch = <span class="number">0</span>; epoch < <span class="number">100</span>; epoch++) {
+  <span class="keyword">const</span> pred = model.<span class="function">forward</span>(X);
+  <span class="keyword">const</span> loss = criterion.<span class="function">forward</span>(pred, Y);
+
+  optimizer.<span class="function">zeroGrad</span>();
+  loss.<span class="function">backward</span>();
+  optimizer.<span class="function">step</span>();
+}
+
+console.<span class="function">log</span>(<span class="string">'Predictions:'</span>, model.<span class="function">forward</span>(X).<span class="function">toArray</span>());</code></pre>
+                </div>
+                <div id="output-training" class="output-block">
+                    <div class="output-title lang-en">Output:</div>
+                    <div class="output-title lang-ru">Результат:</div>
+                    <div class="output-content"></div>
+                </div>
+            </div>
+
+            <div id="example-huggingface" class="example-content">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-title lang-en">Hugging Face Integration</span>
+                        <span class="code-title lang-ru">Интеграция с Hugging Face</span>
+                        <button class="run-btn" onclick="runExample('huggingface')">
+                            ▶ <span class="lang-en">Run</span><span class="lang-ru">Запустить</span>
+                        </button>
+                    </div>
+                    <pre><code><span class="keyword">import</span> { <span class="class">HuggingFaceHub</span> } <span class="keyword">from</span> <span class="string">'brainy-ml'</span>;
+
+<span class="keyword">const</span> hub = <span class="keyword">new</span> <span class="class">HuggingFaceHub</span>();
+
+<span class="comment">// Get model info / Получаем информацию о модели</span>
+<span class="keyword">const</span> info = <span class="keyword">await</span> hub.<span class="function">getModelInfo</span>(<span class="string">'Qwen/Qwen2.5-0.5B'</span>);
+console.<span class="function">log</span>(<span class="string">'Model:'</span>, info.<span class="variable">id</span>);
+
+<span class="comment">// Download config / Скачиваем конфигурацию</span>
+<span class="keyword">const</span> config = <span class="keyword">await</span> hub.<span class="function">downloadConfig</span>(<span class="string">'Qwen/Qwen2.5-0.5B'</span>);
+console.<span class="function">log</span>(<span class="string">'Hidden size:'</span>, config.<span class="variable">hidden_size</span>);
+console.<span class="function">log</span>(<span class="string">'Vocab size:'</span>, config.<span class="variable">vocab_size</span>);
+
+<span class="comment">// Download weights / Скачиваем веса</span>
+<span class="comment">// const weights = await hub.downloadWeights('Qwen/Qwen2.5-0.5B');</span>
+<span class="comment">// console.log('Loaded', weights.size, 'tensors');</span></code></pre>
+                </div>
+                <div id="output-huggingface" class="output-block">
+                    <div class="output-title lang-en">Output:</div>
+                    <div class="output-title lang-ru">Результат:</div>
+                    <div class="output-content"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="api-section" id="api">
+        <div class="container">
+            <h2 class="section-title lang-en">API Reference</h2>
+            <h2 class="section-title lang-ru">Справочник API</h2>
+
+            <div class="api-grid">
+                <div class="api-card">
+                    <h4>Core</h4>
+                    <ul class="api-list">
+                        <li>tensor()</li>
+                        <li>zeros() / ones()</li>
+                        <li>rand() / randn()</li>
+                        <li>eye() / linspace()</li>
+                        <li>arange() / full()</li>
+                        <li>cat() / stack()</li>
+                        <li>noGrad()</li>
+                        <li>manualSeed()</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Tensor Operations</h4>
+                    <ul class="api-list">
+                        <li>.add() / .sub() / .mul() / .div()</li>
+                        <li>.matmul() / .pow() / .sqrt()</li>
+                        <li>.exp() / .log() / .abs()</li>
+                        <li>.sum() / .mean() / .max() / .min()</li>
+                        <li>.reshape() / .view() / .T</li>
+                        <li>.transpose() / .permute()</li>
+                        <li>.squeeze() / .unsqueeze()</li>
+                        <li>.backward() / .detach() / .clone()</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Neural Networks</h4>
+                    <ul class="api-list">
+                        <li>Linear / Conv2d</li>
+                        <li>MaxPool2d / AvgPool2d</li>
+                        <li>BatchNorm1d / BatchNorm2d</li>
+                        <li>LayerNorm / Dropout</li>
+                        <li>Embedding / Flatten</li>
+                        <li>Sequential / Module</li>
+                        <li>Parameter</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Activations</h4>
+                    <ul class="api-list">
+                        <li>ReLU / LeakyReLU / ELU</li>
+                        <li>GELU / SiLU / Swish</li>
+                        <li>Sigmoid / Tanh</li>
+                        <li>Softmax / LogSoftmax</li>
+                        <li>PReLU / SELU</li>
+                        <li>Mish / Hardswish</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Loss Functions</h4>
+                    <ul class="api-list">
+                        <li>MSELoss / L1Loss</li>
+                        <li>CrossEntropyLoss</li>
+                        <li>BCELoss / BCEWithLogitsLoss</li>
+                        <li>NLLLoss / HingeLoss</li>
+                        <li>SmoothL1Loss</li>
+                        <li>KLDivLoss</li>
+                        <li>CosineEmbeddingLoss</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Optimizers & LR</h4>
+                    <ul class="api-list">
+                        <li>SGD / Adam / AdamW</li>
+                        <li>RMSprop / Adagrad</li>
+                        <li>StepLR / ExponentialLR</li>
+                        <li>CosineAnnealingLR</li>
+                        <li>ReduceLROnPlateau</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Transformers</h4>
+                    <ul class="api-list">
+                        <li>MultiHeadAttention</li>
+                        <li>TransformerEncoder</li>
+                        <li>TransformerDecoder</li>
+                        <li>PositionalEncoding</li>
+                        <li>RotaryEmbedding (RoPE)</li>
+                        <li>createCausalMask()</li>
+                        <li>FeedForward</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Pre-built Models</h4>
+                    <ul class="api-list">
+                        <li>GPT / createSmallGPT()</li>
+                        <li>VAE / ConvVAE</li>
+                        <li>TRM / TRMv2 / TRMUltra</li>
+                        <li>TRMPro / TRMSupreme</li>
+                        <li>TRMLite / TRMX</li>
+                        <li>MultimodalFewShot</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Data & Tokenizers</h4>
+                    <ul class="api-list">
+                        <li>DataLoader / TensorDataset</li>
+                        <li>trainTestSplit()</li>
+                        <li>StreamingDataset</li>
+                        <li>loadJson() / loadCsv()</li>
+                        <li>BPETokenizer</li>
+                        <li>WordPieceTokenizer</li>
+                        <li>loadTokenizer()</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Hugging Face</h4>
+                    <ul class="api-list">
+                        <li>HuggingFaceHub</li>
+                        <li>getModelInfo()</li>
+                        <li>listFiles()</li>
+                        <li>downloadConfig()</li>
+                        <li>downloadWeights()</li>
+                        <li>downloadTokenizer()</li>
+                        <li>loadWeightsIntoModel()</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Fine-tuning & Quant</h4>
+                    <ul class="api-list">
+                        <li>LoRALayer / AdapterLayer</li>
+                        <li>createLoRAModel()</li>
+                        <li>FineTuneTrainer</li>
+                        <li>dynamicQuantize()</li>
+                        <li>prepareQAT() / convertQAT()</li>
+                        <li>getModelSize()</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Utilities</h4>
+                    <ul class="api-list">
+                        <li>saveModel() / loadModel()</li>
+                        <li>saveCheckpoint() / loadCheckpoint()</li>
+                        <li>visualize() / summary()</li>
+                        <li>isWebGPUSupported()</li>
+                        <li>createDevice()</li>
+                        <li>GPUBackend</li>
+                        <li>WorkerPool</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Reinforcement Learning</h4>
+                    <ul class="api-list">
+                        <li>DQNAgent</li>
+                        <li>PolicyGradientAgent</li>
+                        <li>ActorCriticAgent</li>
+                        <li>ReplayBuffer</li>
+                        <li>CartPoleEnv</li>
+                        <li>GridWorldEnv</li>
+                        <li>trainDQN()</li>
+                    </ul>
+                </div>
+
+                <div class="api-card">
+                    <h4>Weight Init</h4>
+                    <ul class="api-list">
+                        <li>xavierUniform() / xavierNormal()</li>
+                        <li>kaimingUniform() / kaimingNormal()</li>
+                        <li>uniform() / normal()</li>
+                        <li>constant() / orthogonal()</li>
+                        <li>zeros_() / ones_()</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>
+                <span class="lang-en">Built with ❤️ for the ML community</span>
+                <span class="lang-ru">Создано с ❤️ для ML-сообщества</span>
+                &nbsp;|&nbsp;
+                <a href="https://github.com/Nopass0/brainy">GitHub</a>
+                &nbsp;|&nbsp;
+                MIT License
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Language switching
+        const langBtns = document.querySelectorAll('.lang-btn');
+        langBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                langBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.body.classList.toggle('ru', btn.dataset.lang === 'ru');
+            });
+        });
+
+        // Example tabs
+        const tabs = document.querySelectorAll('.example-tab');
+        const contents = document.querySelectorAll('.example-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('example-' + tab.dataset.example).classList.add('active');
+            });
+        });
+
+        // Copy install command
+        function copyInstall() {
+            navigator.clipboard.writeText('bun add brainy-ml');
+            alert('Copied!');
+        }
+
+        // Run examples (simulated output)
+        function runExample(name) {
+            const outputs = {
+                tensor: `Sum shape: [2, 2]
+Product: [[5, 11], [11, 25]]
+Mean: 0.0234`,
+                autograd: `x: 2
+y: 11
+dy/dx: 7`,
+                nn: `Model parameters: 2753
+Input shape: [4, 10]
+Output shape: [4, 1]`,
+                training: `Predictions: [[0.02], [0.97], [0.98], [0.03]]`,
+                huggingface: `Model: Qwen/Qwen2.5-0.5B
+Hidden size: 896
+Vocab size: 151936`
+            };
+
+            const outputBlock = document.getElementById('output-' + name);
+            outputBlock.classList.add('visible');
+            outputBlock.querySelector('.output-content').textContent = outputs[name];
+        }
+    </script>
+</body>
+</html>
